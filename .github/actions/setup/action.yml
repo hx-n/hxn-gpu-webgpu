@@ -8,8 +8,10 @@ runs:
       with:
         toolchain: nightly-2026-08-25
         targets: wasm32-unknown-emscripten, wasm32-wasip1-threads
-        # An Ash side module rebuilds the standard library position-independent.
-        components: rust-src
+        # An Ash side module rebuilds the standard library position-independent,
+        # and is linked by the toolchain's rust-lld, which loads llvm-tools'
+        # libLLVM on macOS.
+        components: rust-src, llvm-tools
     - uses: Swatinem/rust-cache@v2
     - if: runner.os == 'Linux'
       uses: krdlab/setup-haxe@v1
