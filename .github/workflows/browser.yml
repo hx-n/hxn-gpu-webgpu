@@ -2,8 +2,9 @@ name: Browser
 
 # The check as a web page in headless Chrome, with WebGPU on the runner's GPU on
 # macOS and SwiftShader on Linux: hxcpp through Emscripten, served by emrun,
-# and a threaded Ash program, served by `ash serve`, whose WebGPU agent runs in
-# a Worker of its own.
+# and a threaded Ash program, served by `ash serve`, whose WebGPU browser agent
+# runs in a Worker of its own. On Linux Chrome's own Vulkan and GL run on
+# SwiftShader too, so it can create the image a WebGPU canvas presents.
 on:
   push:
     branches: [main]
@@ -33,7 +34,7 @@ jobs:
           - os: ubuntu-latest
             runtime: hxcpp
             check: cpp --wasm
-            flags: --enable-unsafe-webgpu --enable-unsafe-swiftshader --use-webgpu-adapter=swiftshader --enable-features=Vulkan
+            flags: --enable-unsafe-webgpu --enable-unsafe-swiftshader --use-webgpu-adapter=swiftshader --enable-features=Vulkan --use-vulkan=swiftshader --use-angle=swiftshader
           - os: macos-latest
             runtime: Ash
             check: hl --wasm --threads
@@ -41,7 +42,7 @@ jobs:
           - os: ubuntu-latest
             runtime: Ash
             check: hl --wasm --threads
-            flags: --enable-unsafe-webgpu --enable-unsafe-swiftshader --use-webgpu-adapter=swiftshader --enable-features=Vulkan
+            flags: --enable-unsafe-webgpu --enable-unsafe-swiftshader --use-webgpu-adapter=swiftshader --enable-features=Vulkan --use-vulkan=swiftshader --use-angle=swiftshader
     steps:
       - uses: actions/checkout@v4
       - uses: ./.github/actions/setup
