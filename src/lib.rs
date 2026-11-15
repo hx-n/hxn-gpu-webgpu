@@ -1,8 +1,9 @@
 //! WebGPU for Haxe in the browser: a thin layer over webgpu.h, as Emscripten's emdawnwebgpu
 //! port implements it on the page's `navigator.gpu`, keeping WebGPU's conventions. Shaders are
 //! hxnsl's WGSL, which the browser compiles, with bind group layouts from hxnsl's `LAYOUT`.
-//! What WebGPU answers later (an adapter, a device, a mapped buffer, finished work) is an hxn
-//! future, settled from the browser's callback.
+//! WebGPU's asynchronous calls (`requestAdapter`, `requestDevice`, `mapAsync`,
+//! `onSubmittedWorkDone`) return hxn futures, resolved from webgpu.h's callbacks when the
+//! browser's promises resolve.
 
 #![cfg(target_os = "emscripten")]
 
