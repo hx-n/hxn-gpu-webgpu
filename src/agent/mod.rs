@@ -1,8 +1,8 @@
 //! The backend for a threaded Ash side module. Each call is encoded onto the wire (`wire.rs`,
-//! generated from WebGPU's IDL by x-idl) into one batch, which the page's agent runs on
-//! `navigator.gpu` in a Worker of its own; the agent is `page/gpu_webgpu.mjs`, which the page
+//! generated from WebGPU's IDL by x-idl) into one batch, which the browser agent runs on
+//! `navigator.gpu` in a Worker of its own; the browser agent is `page/gpu_webgpu.mjs`, which the web page
 //! starts when `Instance.create` asks for it through `ash_host_agent`. Objects are kept by the
-//! agent under handles this library picks, so making one needs no round trip; a batch goes out
+//! browser agent under handles this library picks, so making one needs no round trip; a batch goes out
 //! when a call needs an answer, and on submit. A promise's answer is a reply record in the
 //! program's shared memory, which a thread of this library waits on and settles into an hxn
 //! future.
@@ -22,14 +22,14 @@ use crate::{
     StorageAccess, Topology, VertexAttribute, VertexFormat, ViewDimension,
 };
 
-/// `navigator.gpu`, as the agent keeps it.
+/// `navigator.gpu`, as the browser agent keeps it.
 const GPU: Handle = Handle(1);
 
-/// The handles the agent holds before this library makes any: the GPU, and the page's canvas
+/// The handles the browser agent holds before this library makes any: the GPU, and the page's canvas
 /// context and element.
 const ROOTS: u32 = 3;
 
-/// The name of the agent, and of its shim beside the page: `gpu_webgpu.mjs`.
+/// The name of the browser agent, and of its shim beside the web page: `gpu_webgpu.mjs`.
 const AGENT: &str = "gpu_webgpu";
 
 static MAILBOX: Mailbox = Mailbox::new();
@@ -46,7 +46,7 @@ fn u64_of(value: i64, what: &str) -> Result<u64, String> {
     u64::try_from(value).map_err(|_| format!("{what} cannot be {value}"))
 }
 
-/// A reply record: the agent's answer to one command, in the program's memory, and the buffer
+/// A reply record: the browser agent's answer to one command, in the program's memory, and the buffer
 /// that takes what it carries. State 0 is pending, 1 done, 2 rejected, 3 too small.
 #[repr(C)]
 struct Reply {
@@ -97,7 +97,7 @@ impl Answer {
     /// What a rejection's reply carries.
     fn message(&self) -> String {
         if self.state() == 3 {
-            return "the agent's answer is too long to carry".into();
+            return "the browser agent's answer is too long to carry".into();
         }
         String::from_utf8_lossy(self.bytes()).into_owned()
     }
@@ -139,7 +139,7 @@ impl State {
         Handle(self.next)
     }
 
-    /// Hands the batch to the agent and waits until it has run it.
+    /// Hands the batch to the browser agent and waits until it has run it.
     fn flush(&mut self) {
         MAILBOX.send(&self.commands.bytes);
         self.commands.bytes.clear();
@@ -158,7 +158,7 @@ impl State {
     }
 }
 
-/// Settles every promise the agent has answered. Run by the waiter thread.
+/// Settles every promise the browser agent has answered. Run by the waiter thread.
 fn settle_answered() {
     let mut s = state();
     let mut i = 0;
@@ -231,7 +231,7 @@ fn settle_answered() {
     }
 }
 
-/// Starts the agent, and the thread that settles what it answers, once.
+/// Starts the browser agent, and the thread that settles what it answers, once.
 fn start() -> Result<(), String> {
     static STARTED: Once = Once::new();
     static AGENT_RUNNING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
@@ -254,7 +254,7 @@ fn start() -> Result<(), String> {
         Ok(())
     } else {
         Err(format!(
-            "no web page started the WebGPU agent: run the program in the web page Ash writes, served by `ash serve`, with {AGENT}.mjs beside it"
+            "no web page started the WebGPU browser agent: run the program in the web page Ash writes, served by `ash serve`, with {AGENT}.mjs beside it"
         ))
     }
 }
@@ -265,7 +265,7 @@ fn await_answer(mut s: MutexGuard<'static, State>, answer: Box<Answer>, settle: 
     s.flush();
 }
 
-/// An object the agent keeps under its handle, forgotten when this is dropped.
+/// An object the browser agent keeps under its handle, forgotten when this is dropped.
 struct Object(Handle);
 
 impl Drop for Object {

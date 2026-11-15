@@ -5,7 +5,7 @@
 //!
 //! Two backends, by how the program reaches the page: under Emscripten, webgpu.h as the
 //! emdawnwebgpu port implements it; as a threaded Ash side module, a wire of commands in shared
-//! memory, served by an agent the page starts through `ash_host_agent`. This file is the API
+//! memory, served by a browser agent the web page starts through `ash_host_agent`. This file is the API
 //! both share, and the one hxn generates the Haxe classes from.
 
 #![cfg(any(

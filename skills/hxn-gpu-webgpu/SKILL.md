@@ -25,7 +25,7 @@ ash --build out/main.wasm --target wasm32-wasip1-threads out/main.hl
 ash serve out          # sends the cross-origin isolation headers shared memory needs
 ```
 
-The compile copies the side module and the agent's `.mjs` files beside
+The compile copies the side module and the browser agent's `.mjs` files beside
 `main.hl`. The haxelib carries both builds prebuilt; no Rust needed.
 
 ## Use

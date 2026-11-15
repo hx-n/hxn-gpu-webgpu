@@ -1,4 +1,4 @@
-//! Generates the WebGPU wire between the Ash backend and the page's agent, from WebGPU's IDL
+//! Generates the WebGPU wire between the Ash backend and the browser agent, from WebGPU's IDL
 //! and the canvas surface xgpu appends, both as xgpu pins them. Run from the repository:
 //! `cargo run --manifest-path tools/wire/Cargo.toml -- <webgpu.idl> <canvas.idl>`.
 
