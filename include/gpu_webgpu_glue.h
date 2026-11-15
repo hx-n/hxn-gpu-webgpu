@@ -57,36 +57,6 @@ inline void adapter_drop(void *self) {
 	hxn::check(hxn_gpu_webgpu_adapter_drop((hxn_handle *)self, &err), err);
 }
 
-inline void shader_module_drop(void *self) {
-	hxn_buf err = HXN_BUF_EMPTY;
-	hxn::check(hxn_gpu_webgpu_shader_module_drop((hxn_handle *)self, &err), err);
-}
-
-inline void pipeline_layout_drop(void *self) {
-	hxn_buf err = HXN_BUF_EMPTY;
-	hxn::check(hxn_gpu_webgpu_pipeline_layout_drop((hxn_handle *)self, &err), err);
-}
-
-inline void compute_pipeline_drop(void *self) {
-	hxn_buf err = HXN_BUF_EMPTY;
-	hxn::check(hxn_gpu_webgpu_compute_pipeline_drop((hxn_handle *)self, &err), err);
-}
-
-inline void render_pipeline_drop(void *self) {
-	hxn_buf err = HXN_BUF_EMPTY;
-	hxn::check(hxn_gpu_webgpu_render_pipeline_drop((hxn_handle *)self, &err), err);
-}
-
-inline void sampler_drop(void *self) {
-	hxn_buf err = HXN_BUF_EMPTY;
-	hxn::check(hxn_gpu_webgpu_sampler_drop((hxn_handle *)self, &err), err);
-}
-
-inline void bind_group_drop(void *self) {
-	hxn_buf err = HXN_BUF_EMPTY;
-	hxn::check(hxn_gpu_webgpu_bind_group_drop((hxn_handle *)self, &err), err);
-}
-
 inline void *device_create_buffer(void *self, cpp::Int64 size, int usage) {
 	hxn_handle *out = 0;
 	hxn_buf err = HXN_BUF_EMPTY;
@@ -195,18 +165,6 @@ inline void device_drop(void *self) {
 	hxn::check(hxn_gpu_webgpu_device_drop((hxn_handle *)self, &err), err);
 }
 
-inline int bind_group_layouts_count(void *self) {
-	int out = 0;
-	hxn_buf err = HXN_BUF_EMPTY;
-	hxn::check(hxn_gpu_webgpu_bind_group_layouts_count((hxn_handle *)self, &out, &err), err);
-	return out;
-}
-
-inline void bind_group_layouts_drop(void *self) {
-	hxn_buf err = HXN_BUF_EMPTY;
-	hxn::check(hxn_gpu_webgpu_bind_group_layouts_drop((hxn_handle *)self, &err), err);
-}
-
 inline cpp::Int64 buffer_size(void *self) {
 	int64_t out = 0;
 	hxn_buf err = HXN_BUF_EMPTY;
@@ -245,6 +203,43 @@ inline void texture_drop(void *self) {
 	hxn::check(hxn_gpu_webgpu_texture_drop((hxn_handle *)self, &err), err);
 }
 
+inline void sampler_drop(void *self) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_sampler_drop((hxn_handle *)self, &err), err);
+}
+
+inline void shader_module_drop(void *self) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_shader_module_drop((hxn_handle *)self, &err), err);
+}
+
+inline int bind_group_layouts_count(void *self) {
+	int out = 0;
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_bind_group_layouts_count((hxn_handle *)self, &out, &err), err);
+	return out;
+}
+
+inline void bind_group_layouts_drop(void *self) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_bind_group_layouts_drop((hxn_handle *)self, &err), err);
+}
+
+inline void pipeline_layout_drop(void *self) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_pipeline_layout_drop((hxn_handle *)self, &err), err);
+}
+
+inline void compute_pipeline_drop(void *self) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_compute_pipeline_drop((hxn_handle *)self, &err), err);
+}
+
+inline void render_pipeline_drop(void *self) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_render_pipeline_drop((hxn_handle *)self, &err), err);
+}
+
 inline void *bind_group_entries_create() {
 	hxn_handle *out = 0;
 	hxn_buf err = HXN_BUF_EMPTY;
@@ -270,6 +265,11 @@ inline void bind_group_entries_sampler(void *self, int binding, void *sampler) {
 inline void bind_group_entries_drop(void *self) {
 	hxn_buf err = HXN_BUF_EMPTY;
 	hxn::check(hxn_gpu_webgpu_bind_group_entries_drop((hxn_handle *)self, &err), err);
+}
+
+inline void bind_group_drop(void *self) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_bind_group_drop((hxn_handle *)self, &err), err);
 }
 
 inline void *command_encoder_begin_compute_pass(void *self) {

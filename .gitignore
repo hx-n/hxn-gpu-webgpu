@@ -3,3 +3,4 @@
 /.cargo/config.toml
 # Native libraries: built for each platform by the release workflow.
 /native
+/tools/wire/target

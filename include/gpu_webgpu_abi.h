@@ -18,24 +18,6 @@ hxn_status hxn_gpu_webgpu_adapter_info(hxn_handle *self, hxn_buf *out, hxn_buf *
 hxn_status hxn_gpu_webgpu_adapter_request_device(hxn_handle *self, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_adapter_drop(hxn_handle *self, hxn_buf *err);
 
-/* ShaderModule */
-hxn_status hxn_gpu_webgpu_shader_module_drop(hxn_handle *self, hxn_buf *err);
-
-/* PipelineLayout */
-hxn_status hxn_gpu_webgpu_pipeline_layout_drop(hxn_handle *self, hxn_buf *err);
-
-/* ComputePipeline */
-hxn_status hxn_gpu_webgpu_compute_pipeline_drop(hxn_handle *self, hxn_buf *err);
-
-/* RenderPipeline */
-hxn_status hxn_gpu_webgpu_render_pipeline_drop(hxn_handle *self, hxn_buf *err);
-
-/* Sampler */
-hxn_status hxn_gpu_webgpu_sampler_drop(hxn_handle *self, hxn_buf *err);
-
-/* BindGroup */
-hxn_status hxn_gpu_webgpu_bind_group_drop(hxn_handle *self, hxn_buf *err);
-
 /* Device */
 hxn_status hxn_gpu_webgpu_device_create_buffer(hxn_handle *self, int64_t size, int32_t usage, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_create_buffer_with(hxn_handle *self, hxn_slice bytes, int32_t usage, hxn_handle **out, hxn_buf *err);
@@ -54,10 +36,6 @@ hxn_status hxn_gpu_webgpu_device_write_texture(hxn_handle *self, hxn_handle *tex
 hxn_status hxn_gpu_webgpu_device_completed(hxn_handle *self, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_drop(hxn_handle *self, hxn_buf *err);
 
-/* BindGroupLayouts */
-hxn_status hxn_gpu_webgpu_bind_group_layouts_count(hxn_handle *self, int32_t *out, hxn_buf *err);
-hxn_status hxn_gpu_webgpu_bind_group_layouts_drop(hxn_handle *self, hxn_buf *err);
-
 /* Buffer */
 hxn_status hxn_gpu_webgpu_buffer_size(hxn_handle *self, int64_t *out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_buffer_read(hxn_handle *self, int64_t offset, int64_t length, hxn_handle **out, hxn_buf *err);
@@ -68,12 +46,34 @@ hxn_status hxn_gpu_webgpu_texture_width(hxn_handle *self, int32_t *out, hxn_buf 
 hxn_status hxn_gpu_webgpu_texture_height(hxn_handle *self, int32_t *out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_texture_drop(hxn_handle *self, hxn_buf *err);
 
+/* Sampler */
+hxn_status hxn_gpu_webgpu_sampler_drop(hxn_handle *self, hxn_buf *err);
+
+/* ShaderModule */
+hxn_status hxn_gpu_webgpu_shader_module_drop(hxn_handle *self, hxn_buf *err);
+
+/* BindGroupLayouts */
+hxn_status hxn_gpu_webgpu_bind_group_layouts_count(hxn_handle *self, int32_t *out, hxn_buf *err);
+hxn_status hxn_gpu_webgpu_bind_group_layouts_drop(hxn_handle *self, hxn_buf *err);
+
+/* PipelineLayout */
+hxn_status hxn_gpu_webgpu_pipeline_layout_drop(hxn_handle *self, hxn_buf *err);
+
+/* ComputePipeline */
+hxn_status hxn_gpu_webgpu_compute_pipeline_drop(hxn_handle *self, hxn_buf *err);
+
+/* RenderPipeline */
+hxn_status hxn_gpu_webgpu_render_pipeline_drop(hxn_handle *self, hxn_buf *err);
+
 /* BindGroupEntries */
 hxn_status hxn_gpu_webgpu_bind_group_entries_create(hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_bind_group_entries_buffer(hxn_handle *self, int32_t binding, hxn_handle *buffer, int64_t offset, int64_t size, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_bind_group_entries_texture(hxn_handle *self, int32_t binding, hxn_handle *texture, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_bind_group_entries_sampler(hxn_handle *self, int32_t binding, hxn_handle *sampler, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_bind_group_entries_drop(hxn_handle *self, hxn_buf *err);
+
+/* BindGroup */
+hxn_status hxn_gpu_webgpu_bind_group_drop(hxn_handle *self, hxn_buf *err);
 
 /* CommandEncoder */
 hxn_status hxn_gpu_webgpu_command_encoder_begin_compute_pass(hxn_handle *self, hxn_handle **out, hxn_buf *err);

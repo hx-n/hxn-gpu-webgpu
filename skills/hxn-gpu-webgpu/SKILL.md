@@ -1,6 +1,6 @@
 ---
 name: hxn-gpu-webgpu
-description: Drive the GPU from Haxe in the browser through WebGPU with the hxn-gpu-webgpu haxelib (package `gpu.webgpu`), for hxcpp programs compiled to wasm with `-D emscripten`; Ash's wasm build is not supported yet, and HashLink and CPPIA do not run in a browser. Use when a Haxe program in a page runs compute shaders or renders with WebGPU, reads buffers back, or uses HXSL shaders from hxnsl as WGSL.
+description: Drive the GPU from Haxe in the browser through WebGPU with the hxn-gpu-webgpu haxelib (package `gpu.webgpu`), for hxcpp programs compiled to wasm with `-D emscripten` and threaded Ash programs (`-D wasm -D hxn_threads`); HashLink and CPPIA do not run in a browser. Use when a Haxe program in a page runs compute shaders or renders with WebGPU, reads buffers back, or uses HXSL shaders from hxnsl as WGSL.
 ---
 
 # hxn-gpu-webgpu
@@ -15,8 +15,18 @@ haxe -lib hxn-gpu-webgpu -lib hxnsl -main Main -cpp out -D emscripten -D disable
 
 Needs the Emscripten SDK on `PATH` and hxcpp from git (its Emscripten
 toolchain uses wasm exceptions). Serve `out/` and open `Main.html` in a
-browser with WebGPU. The haxelib carries the library prebuilt for
-`wasm32-unknown-emscripten`; no Rust needed.
+browser with WebGPU.
+
+Ash (0.1.18 or later), threaded:
+
+```
+haxe -lib hxn-gpu-webgpu -lib hxnsl -main Main -hl out/main.hl -D wasm -D hxn_threads
+ash --build out/main.wasm --target wasm32-wasip1-threads out/main.hl
+ash serve out          # sends the cross-origin isolation headers shared memory needs
+```
+
+The compile copies the side module and the agent's `.mjs` files beside
+`main.hl`. The haxelib carries both builds prebuilt; no Rust needed.
 
 ## Use
 
@@ -61,16 +71,18 @@ bytesPerRow)`, `device.createSampler(Filter.Linear, AddressMode.ClampToEdge)`,
 
 ## Rules
 
-- In a page use `then`, never `await`: waiting blocks the page's thread, and
-  the browser's callbacks only run when it is free.
+- Under hxcpp in a page use `then`, never `await`: waiting blocks the page's
+  thread, and the browser's callbacks only run when it is free. An Ash
+  program runs in a Worker, so waiting there does not block the page.
 - Synchronization is WebGPU's: no barriers. `device.completed()` settles when
   submitted work has finished.
 - `Device.submit(encoder)` finishes the encoder; record a new one after.
   End each pass before the next command on its encoder.
 - Copies from textures need rows a multiple of 256 bytes apart; buffer sizes
   and `writeBuffer` lengths a multiple of 4.
-- WebGPU's validation errors arrive later and are printed to stderr as
-  `WebGPU validation error: ...`; failures making objects are thrown.
+- WebGPU's validation errors arrive later: under hxcpp on stderr as
+  `WebGPU validation error: ...`, under Ash in the agent Worker's console as
+  `WebGPU error: ...`. Failures making objects are thrown.
 - Every object holds its WebGPU object until `close()`.
 
 ## Reference

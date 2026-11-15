@@ -1,7 +1,9 @@
 name: Browser
 
-# The check as a page: hxcpp through Emscripten, served by emrun to headless
-# Chrome, with WebGPU on the runner's GPU on macOS and SwiftShader on Linux.
+# The check as a page in headless Chrome, with WebGPU on the runner's GPU on
+# macOS and SwiftShader on Linux: hxcpp through Emscripten, served by emrun,
+# and a threaded Ash program, served by `ash serve`, whose WebGPU agent runs in
+# a Worker of its own.
 on:
   push:
     branches: [main]
@@ -17,7 +19,7 @@ defaults:
 
 jobs:
   check:
-    name: Chrome, ${{ matrix.os }}
+    name: ${{ matrix.runtime }}, Chrome, ${{ matrix.os }}
     runs-on: ${{ matrix.os }}
     timeout-minutes: 60
     strategy:
@@ -25,8 +27,20 @@ jobs:
       matrix:
         include:
           - os: macos-latest
+            runtime: hxcpp
+            check: cpp --wasm
             flags: --enable-unsafe-webgpu
           - os: ubuntu-latest
+            runtime: hxcpp
+            check: cpp --wasm
+            flags: --enable-unsafe-webgpu --enable-unsafe-swiftshader --use-webgpu-adapter=swiftshader --enable-features=Vulkan
+          - os: macos-latest
+            runtime: Ash
+            check: hl --wasm --threads
+            flags: --enable-unsafe-webgpu
+          - os: ubuntu-latest
+            runtime: Ash
+            check: hl --wasm --threads
             flags: --enable-unsafe-webgpu --enable-unsafe-swiftshader --use-webgpu-adapter=swiftshader --enable-features=Vulkan
     steps:
       - uses: actions/checkout@v4
@@ -37,7 +51,7 @@ jobs:
           HXN_BROWSER_ARGS: ${{ matrix.flags }}
         run: |
           source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
-          hxn check cpp --wasm --browser 2>&1 | tee check.txt
+          hxn check ${{ matrix.check }} --browser 2>&1 | tee check.txt
           grep -q '^compute: 64 values' check.txt
           grep -q '^render: 4x4 pixels' check.txt
           grep -q '^textured: 4x4 pixels' check.txt

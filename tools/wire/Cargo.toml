@@ -1,0 +1,12 @@
+[package]
+name = "hxn-gpu-webgpu-wire"
+version = "0.0.0"
+edition = "2024"
+publish = false
+
+# Writes the Ash backend's wire: `src/agent/wire.rs` and the agent's
+# `page/gpu_webgpu_service.mjs`, from WebGPU's IDL as xgpu pins it.
+[dependencies]
+x_idl = { git = "https://github.com/rayzor-blade/x-idl.git", rev = "753610fd220dcfb5cce358e9418eadc48cb4562d" }
+
+[workspace]

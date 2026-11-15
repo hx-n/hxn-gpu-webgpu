@@ -7,5 +7,5 @@
   "tags": ["webgpu", "gpu", "haxe", "graphics", "compute", "wgsl", "wasm", "emscripten", "browser"],
   "contributors": ["darmie", "rayzor"],
   "releasenote": "First release.",
-  "dependencies": { "hxn": "0.3.2" }
+  "dependencies": { "hxn": "0.3.3" }
 }

@@ -143,7 +143,7 @@
         },
         {
           "name": "request_device",
-          "docs": "A device with the default limits and no extra features. WebGPU's errors outside an\nerror scope are printed to stderr as `WebGPU validation error: ...`.",
+          "docs": "A device with the default limits and no extra features.",
           "kind": "method",
           "params": [],
           "returns": "future<Device>",
@@ -151,36 +151,6 @@
           "blocking": false
         }
       ]
-    },
-    {
-      "name": "ShaderModule",
-      "docs": "A `GPUShaderModule` of WGSL.",
-      "methods": []
-    },
-    {
-      "name": "PipelineLayout",
-      "docs": "A `GPUPipelineLayout`.",
-      "methods": []
-    },
-    {
-      "name": "ComputePipeline",
-      "docs": "A `GPUComputePipeline`.",
-      "methods": []
-    },
-    {
-      "name": "RenderPipeline",
-      "docs": "A `GPURenderPipeline`.",
-      "methods": []
-    },
-    {
-      "name": "Sampler",
-      "docs": "A `GPUSampler`.",
-      "methods": []
-    },
-    {
-      "name": "BindGroup",
-      "docs": "A `GPUBindGroup`.",
-      "methods": []
     },
     {
       "name": "Device",
@@ -324,21 +294,6 @@
       ]
     },
     {
-      "name": "BindGroupLayouts",
-      "docs": "The bind group layouts of a pipeline, group 0 first.",
-      "methods": [
-        {
-          "name": "count",
-          "docs": "The number of groups.",
-          "kind": "method",
-          "params": [],
-          "returns": "i32",
-          "fallible": false,
-          "blocking": false
-        }
-      ]
-    },
-    {
       "name": "Buffer",
       "docs": "A `GPUBuffer`.",
       "methods": [
@@ -384,6 +339,46 @@
       ]
     },
     {
+      "name": "Sampler",
+      "docs": "A `GPUSampler`.",
+      "methods": []
+    },
+    {
+      "name": "ShaderModule",
+      "docs": "A `GPUShaderModule` of WGSL.",
+      "methods": []
+    },
+    {
+      "name": "BindGroupLayouts",
+      "docs": "The bind group layouts of a pipeline, group 0 first.",
+      "methods": [
+        {
+          "name": "count",
+          "docs": "The number of groups.",
+          "kind": "method",
+          "params": [],
+          "returns": "i32",
+          "fallible": false,
+          "blocking": false
+        }
+      ]
+    },
+    {
+      "name": "PipelineLayout",
+      "docs": "A `GPUPipelineLayout`.",
+      "methods": []
+    },
+    {
+      "name": "ComputePipeline",
+      "docs": "A `GPUComputePipeline`.",
+      "methods": []
+    },
+    {
+      "name": "RenderPipeline",
+      "docs": "A `GPURenderPipeline`.",
+      "methods": []
+    },
+    {
       "name": "BindGroupEntries",
       "docs": "The resources of a bind group, by binding, before `Device.createBindGroup` makes it.",
       "methods": [
@@ -423,6 +418,11 @@
           "blocking": false
         }
       ]
+    },
+    {
+      "name": "BindGroup",
+      "docs": "A `GPUBindGroup`.",
+      "methods": []
     },
     {
       "name": "CommandEncoder",

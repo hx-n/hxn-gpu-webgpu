@@ -17,10 +17,7 @@ class Adapter {
 	public function info():String
 		return HxnGpuWebgpuNative.adapter_info(hxnRaw);
 
-	/**
-		A device with the default limits and no extra features. WebGPU's errors outside an
-		error scope are printed to stderr as `WebGPU validation error: ...`.
-	**/
+	/** A device with the default limits and no extra features. **/
 	public function requestDevice():hxn.Future<Device>
 		return HxnGpuWebgpuFuture.ofDevice(HxnGpuWebgpuNative.adapter_request_device(hxnRaw));
 

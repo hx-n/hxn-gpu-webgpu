@@ -23,6 +23,6 @@ init = ["gpu.webgpu.Shaders.register()"]
 link-args = { wasm32-unknown-emscripten = ["--use-port=emdawnwebgpu"] }
 
 [dependencies]
-# hxn after 0.3.2: futures delivered from the page's event loop, and link-args.
-hxn = { git = "https://github.com/hx-n/hxn.git", rev = "2a0dc7c" }
-hxn-future = { git = "https://github.com/hx-n/hxn.git", rev = "2a0dc7c" }
+# hxn after 0.3.3: threaded Ash side modules, page files and Ash pages.
+hxn = { git = "https://github.com/hx-n/hxn.git", rev = "e1a2676" }
+hxn-future = { git = "https://github.com/hx-n/hxn.git", rev = "e1a2676" }
