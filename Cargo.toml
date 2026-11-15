@@ -24,5 +24,5 @@ link-args = { wasm32-unknown-emscripten = ["--use-port=emdawnwebgpu"] }
 
 [dependencies]
 # hxn after 0.3.3: threaded Ash side modules, page files and Ash pages.
-hxn = { git = "https://github.com/hx-n/hxn.git", rev = "248d670" }
-hxn-future = { git = "https://github.com/hx-n/hxn.git", rev = "248d670" }
+hxn = { git = "https://github.com/hx-n/hxn.git", rev = "24a849e" }
+hxn-future = { git = "https://github.com/hx-n/hxn.git", rev = "24a849e" }
