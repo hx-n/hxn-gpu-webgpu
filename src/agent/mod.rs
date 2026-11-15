@@ -4,8 +4,8 @@
 //! starts when `Instance.create` asks for it through `ash_host_agent`. Objects are kept by the
 //! browser agent under handles this library picks, so making one needs no round trip; a batch goes out
 //! when a call needs an answer, and on submit. A promise's answer is a reply record in the
-//! program's shared memory, which a thread of this library waits on and settles into an hxn
-//! future.
+//! program's shared memory, which Ash's watch on the mailbox settles into an hxn future on
+//! the program's thread.
 
 // Generated for all of WebGPU's IDL, of which this backend uses a part.
 #[allow(dead_code, clippy::all)]
@@ -36,6 +36,16 @@ static MAILBOX: Mailbox = Mailbox::new();
 
 unsafe extern "C" {
     fn ash_host_agent(name: *const u8, name_len: u32, address: u32) -> i32;
+    fn ash_host_watch(
+        word: *const u32,
+        handler: unsafe extern "C" fn(*mut std::ffi::c_void),
+        context: *mut std::ffi::c_void,
+    ) -> *const u32;
+}
+
+/// Run by Ash on the program's thread whenever the browser agent has settled another reply.
+unsafe extern "C" fn settled(_: *mut std::ffi::c_void) {
+    settle_answered();
 }
 
 fn u32_of(value: i32, what: &str) -> Result<u32, String> {
@@ -158,7 +168,7 @@ impl State {
     }
 }
 
-/// Settles every promise the browser agent has answered. Run by the waiter thread.
+/// Settles every promise the browser agent has answered. Run on the program's thread by Ash's watch.
 fn settle_answered() {
     let mut s = state();
     let mut i = 0;
@@ -231,24 +241,30 @@ fn settle_answered() {
     }
 }
 
-/// Starts the browser agent, and the thread that settles what it answers, once.
+/// Starts the browser agent, and has Ash settle what it answers, once.
 fn start() -> Result<(), String> {
     static STARTED: Once = Once::new();
     static AGENT_RUNNING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
     STARTED.call_once(|| {
-        let address = &MAILBOX as *const Mailbox as usize as u32;
-        let ran = unsafe { ash_host_agent(AGENT.as_ptr(), AGENT.len() as u32, address) };
-        if ran != 1 {
+        // Watched before any request is sent, so no reply is missed. Ash runs the handler on
+        // the program's thread while it waits; the browser agent adds one to the word Ash
+        // answers, and notifies it, after settling a reply, which wakes that wait.
+        let wake = unsafe {
+            ash_host_watch(
+                MAILBOX.settled.as_ptr().cast_const().cast(),
+                settled,
+                std::ptr::null_mut(),
+            )
+        };
+        if wake.is_null() {
             return;
         }
-        AGENT_RUNNING.store(true, SeqCst);
-        std::thread::spawn(|| {
-            let mut seen = MAILBOX.settled.load(SeqCst);
-            loop {
-                settle_answered();
-                seen = MAILBOX.wait_settled(seen);
-            }
-        });
+        MAILBOX.wake.store(wake as usize as u32, SeqCst);
+        let address = &MAILBOX as *const Mailbox as usize as u32;
+        let ran = unsafe { ash_host_agent(AGENT.as_ptr(), AGENT.len() as u32, address) };
+        if ran == 1 {
+            AGENT_RUNNING.store(true, SeqCst);
+        }
     });
     if AGENT_RUNNING.load(SeqCst) {
         Ok(())
