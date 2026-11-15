@@ -33,9 +33,40 @@ inline void *instance_request_adapter(void *self) {
 	return out;
 }
 
+inline void *instance_create_canvas_surface(void *self) {
+	hxn_handle *out = 0;
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_instance_create_canvas_surface((hxn_handle *)self, &out, &err), err);
+	return out;
+}
+
 inline void instance_drop(void *self) {
 	hxn_buf err = HXN_BUF_EMPTY;
 	hxn::check(hxn_gpu_webgpu_instance_drop((hxn_handle *)self, &err), err);
+}
+
+inline int surface_preferred_format(void *self, void *adapter) {
+	int out = 0;
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_surface_preferred_format((hxn_handle *)self, (hxn_handle *)adapter, &out, &err), err);
+	return out;
+}
+
+inline void surface_configure(void *self, void *device, int format, int usage, int width, int height) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_surface_configure((hxn_handle *)self, (hxn_handle *)device, format, usage, width, height, &err), err);
+}
+
+inline void *surface_current_texture(void *self) {
+	hxn_handle *out = 0;
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_surface_current_texture((hxn_handle *)self, &out, &err), err);
+	return out;
+}
+
+inline void surface_drop(void *self) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_surface_drop((hxn_handle *)self, &err), err);
 }
 
 inline ::String adapter_info(void *self) {

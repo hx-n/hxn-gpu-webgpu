@@ -20,6 +20,10 @@ class Instance {
 	public function requestAdapter():hxn.Future<Adapter>
 		return HxnGpuWebgpuFuture.ofAdapter(HxnGpuWebgpuNative.instance_request_adapter(hxnRaw));
 
+	/** The web page's canvas, as a surface to render frames into. **/
+	public function createCanvasSurface():Surface
+		return Surface.hxnAdopt(HxnGpuWebgpuNative.instance_create_canvas_surface(hxnRaw));
+
 	/**
 		Releases the native value now. The collector does it otherwise. Using
 		this object afterwards throws.

@@ -125,6 +125,48 @@
           "returns": "future<Adapter>",
           "fallible": false,
           "blocking": false
+        },
+        {
+          "name": "create_canvas_surface",
+          "docs": "The web page's canvas, as a surface to render frames into.",
+          "kind": "method",
+          "params": [],
+          "returns": "Surface",
+          "fallible": true,
+          "blocking": false
+        }
+      ]
+    },
+    {
+      "name": "Surface",
+      "docs": "The web page's canvas. A frame rendered into its `currentTexture` is shown when the program\nreturns to the browser's event loop.",
+      "methods": [
+        {
+          "name": "preferred_format",
+          "docs": "The format the browser prefers for the canvas, `Bgra8Unorm` or `Rgba8Unorm`.",
+          "kind": "method",
+          "params": [{ "name": "adapter", "type": "Adapter" }],
+          "returns": "Format",
+          "fallible": false,
+          "blocking": false
+        },
+        {
+          "name": "configure",
+          "docs": "Sizes the canvas to `width` by `height` and has `device` render into it, in `format`,\nfor `usage` (`TextureUsage` bits).",
+          "kind": "method",
+          "params": [{ "name": "device", "type": "Device" }, { "name": "format", "type": "Format" }, { "name": "usage", "type": "i32" }, { "name": "width", "type": "i32" }, { "name": "height", "type": "i32" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "current_texture",
+          "docs": "This frame's texture.",
+          "kind": "method",
+          "params": [],
+          "returns": "Texture",
+          "fallible": true,
+          "blocking": false
         }
       ]
     },

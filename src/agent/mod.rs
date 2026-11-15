@@ -416,6 +416,12 @@ impl Instance {
         Ok(Instance)
     }
 
+    pub fn create_canvas_surface(&self) -> Result<Surface, String> {
+        Ok(Surface {
+            size: Mutex::new((0, 0)),
+        })
+    }
+
     pub fn request_adapter(&self) -> Future<crate::Adapter> {
         let (completer, future) = hxn_future::pending();
         let mut s = state();
@@ -1188,5 +1194,73 @@ impl RenderPass {
         self.ended = true;
         state().commands.gpu_render_pass_encoder_end(self.raw.0);
         Ok(())
+    }
+}
+
+/// The canvas the web page gave the browser agent: its WebGPU context is handle 2, the
+/// canvas itself handle 3. Its size is the one `configure` set.
+pub struct Surface {
+    size: Mutex<(i32, i32)>,
+}
+
+const CANVAS: Handle = Handle(2);
+const CANVAS_ELEMENT: Handle = Handle(3);
+
+impl Surface {
+    pub fn preferred_format(&self, _adapter: &Adapter) -> Format {
+        let mut s = state();
+        let answer = Answer::new(16);
+        s.commands.gpu_get_preferred_canvas_format(GPU, answer.at());
+        s.flush();
+        match answer.decode::<wire::GPUTextureFormat>() {
+            Some(wire::GPUTextureFormat::Rgba8unorm) => Format::Rgba8Unorm,
+            _ => Format::Bgra8Unorm,
+        }
+    }
+
+    pub fn configure(
+        &self,
+        device: &Device,
+        format: Format,
+        usage: i32,
+        width: i32,
+        height: i32,
+    ) -> Result<(), String> {
+        *self.size.lock().unwrap_or_else(|p| p.into_inner()) = (width, height);
+        let width = u32_of(width, "a width")? as u64;
+        let height = u32_of(height, "a height")? as u64;
+        let mut s = state();
+        s.commands
+            .offscreen_canvas_set_width(CANVAS_ELEMENT, &width);
+        s.commands
+            .offscreen_canvas_set_height(CANVAS_ELEMENT, &height);
+        s.commands.gpu_canvas_context_configure(
+            CANVAS,
+            &wire::GPUCanvasConfiguration {
+                device: device.device(),
+                format: texture_format(format),
+                usage: Some(usage as u32),
+                view_formats: None,
+                tone_mapping: None,
+                alpha_mode: Some(wire::GPUCanvasAlphaMode::Opaque),
+            },
+        );
+        Ok(())
+    }
+
+    pub fn current_texture(&self) -> Result<Texture, String> {
+        let mut s = state();
+        let raw = s.handle();
+        let view = s.handle();
+        s.commands
+            .gpu_canvas_context_get_current_texture(CANVAS, raw);
+        s.commands.gpu_texture_create_view(raw, view, &None);
+        let (width, height) = *self.size.lock().unwrap_or_else(|p| p.into_inner());
+        Ok(Texture {
+            raw: Object(raw),
+            view: Object(view),
+            width,
+            height,
+        })
     }
 }

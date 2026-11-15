@@ -185,6 +185,30 @@ impl Instance {
         Ok(Instance { raw: Shared(raw) })
     }
 
+    /// The web page's `#canvas`, which Emscripten's page has.
+    pub fn create_canvas_surface(&self) -> Result<Surface, String> {
+        let mut source = WGPUEmscriptenSurfaceSourceCanvasHTMLSelector {
+            chain: WGPUChainedStruct {
+                next: std::ptr::null_mut(),
+                sType: WGPUSType_EmscriptenSurfaceSourceCanvasHTMLSelector,
+            },
+            // The port reads the selector as a C string, up to its NUL.
+            selector: WGPUStringView {
+                data: c"#canvas".as_ptr(),
+                length: 7,
+            },
+        };
+        let descriptor = WGPUSurfaceDescriptor {
+            nextInChain: (&mut source.chain) as *mut WGPUChainedStruct,
+            label: unset(),
+        };
+        let raw = unsafe { wgpuInstanceCreateSurface(self.raw.0, &descriptor) };
+        if raw.is_null() {
+            return Err("the web page has no #canvas to render into".into());
+        }
+        Ok(Surface { raw: Shared(raw) })
+    }
+
     /// The browser's adapter, its default for power preference.
     pub fn request_adapter(&self) -> Future<crate::Adapter> {
         let (completer, future) = hxn_future::pending();
@@ -1216,5 +1240,82 @@ impl RenderPass {
         self.ended = true;
         unsafe { wgpuRenderPassEncoderEnd(self.raw.0) };
         Ok(())
+    }
+}
+
+/// The web page's canvas as a `WGPUSurface`.
+pub struct Surface {
+    raw: Shared<WGPUSurface>,
+}
+
+impl Drop for Surface {
+    fn drop(&mut self) {
+        unsafe { wgpuSurfaceRelease(self.raw.0) };
+    }
+}
+
+impl Surface {
+    pub fn preferred_format(&self, adapter: &Adapter) -> Format {
+        let mut capabilities: WGPUSurfaceCapabilities = unsafe { std::mem::zeroed() };
+        let mut format = Format::Bgra8Unorm;
+        if unsafe { wgpuSurfaceGetCapabilities(self.raw.0, adapter.raw.0, &mut capabilities) }
+            == WGPUStatus_Success
+        {
+            if capabilities.formatCount > 0
+                && unsafe { *capabilities.formats } == WGPUTextureFormat_RGBA8Unorm
+            {
+                format = Format::Rgba8Unorm;
+            }
+            unsafe { wgpuSurfaceCapabilitiesFreeMembers(capabilities) };
+        }
+        format
+    }
+
+    pub fn configure(
+        &self,
+        device: &Device,
+        format: Format,
+        usage: i32,
+        width: i32,
+        height: i32,
+    ) -> Result<(), String> {
+        let configuration = WGPUSurfaceConfiguration {
+            nextInChain: std::ptr::null_mut(),
+            device: device.inner.device.0,
+            format: format as WGPUTextureFormat,
+            usage: usage as WGPUTextureUsage,
+            width: u32_of(width, "a width")?,
+            height: u32_of(height, "a height")?,
+            viewFormatCount: 0,
+            viewFormats: std::ptr::null(),
+            alphaMode: WGPUCompositeAlphaMode_Opaque,
+            presentMode: WGPUPresentMode_Fifo,
+        };
+        unsafe { wgpuSurfaceConfigure(self.raw.0, &configuration) };
+        Ok(())
+    }
+
+    pub fn current_texture(&self) -> Result<Texture, String> {
+        let mut frame: WGPUSurfaceTexture = unsafe { std::mem::zeroed() };
+        unsafe { wgpuSurfaceGetCurrentTexture(self.raw.0, &mut frame) };
+        if frame.texture.is_null()
+            || (frame.status != WGPUSurfaceGetCurrentTextureStatus_SuccessOptimal
+                && frame.status != WGPUSurfaceGetCurrentTextureStatus_SuccessSuboptimal)
+        {
+            return Err(format!(
+                "the canvas has no texture this frame (status {})",
+                frame.status
+            ));
+        }
+        let raw = frame.texture;
+        let width = unsafe { wgpuTextureGetWidth(raw) } as i32;
+        let height = unsafe { wgpuTextureGetHeight(raw) } as i32;
+        let view = unsafe { wgpuTextureCreateView(raw, std::ptr::null()) };
+        Ok(Texture {
+            raw: Shared(raw),
+            view: Shared(view),
+            width,
+            height,
+        })
     }
 }

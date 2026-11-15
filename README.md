@@ -54,8 +54,8 @@ Instance.create().requestAdapter().then(adapter -> {
 
 [`examples/check/Main.hx`](https://github.com/hx-n/hxn-gpu-webgpu/blob/main/examples/check/Main.hx)
 is the whole program: a compute pass over a buffer, a render pass into a
-texture, and a pass sampling a texture, each read back through a mapped
-buffer.
+texture, a pass sampling a texture, and a frame of the web page's canvas,
+each read back through a mapped buffer.
 
 ## Compiling
 
@@ -97,7 +97,8 @@ All in the package `gpu.webgpu`:
 
 | Class | |
 |---|---|
-| `Instance` | `create()` and `requestAdapter()`. |
+| `Instance` | `create()`, `requestAdapter()` and `createCanvasSurface()`. |
+| `Surface` | The web page's canvas: `preferredFormat(adapter)`, `configure(device, format, usage, width, height)` and `currentTexture()`. A frame is shown when the program returns to the browser's event loop. |
 | `Adapter` | `info()` and `requestDevice()`. |
 | `Device` | Buffers, textures, samplers, shader modules, bind group layouts, pipeline layouts, pipelines, bind groups and command encoders; `submit`, `writeBuffer`, `writeTexture` and `completed`. |
 | `Buffer` | `read(offset, length)`, a future of the bytes, through a mapping. |

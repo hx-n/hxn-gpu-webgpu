@@ -230,6 +230,49 @@ impl Instance {
     pub fn request_adapter(&self) -> Future<Adapter> {
         self.inner.request_adapter()
     }
+
+    /// The web page's canvas, as a surface to render frames into.
+    pub fn create_canvas_surface(&self) -> Result<Surface, String> {
+        Ok(Surface {
+            inner: self.inner.create_canvas_surface()?,
+        })
+    }
+}
+
+/// The web page's canvas. A frame rendered into its `currentTexture` is shown when the program
+/// returns to the browser's event loop.
+#[hxn::interface]
+pub struct Surface {
+    inner: backend::Surface,
+}
+
+#[hxn::methods]
+impl Surface {
+    /// The format the browser prefers for the canvas, `Bgra8Unorm` or `Rgba8Unorm`.
+    pub fn preferred_format(&self, adapter: &Adapter) -> Format {
+        self.inner.preferred_format(&adapter.inner)
+    }
+
+    /// Sizes the canvas to `width` by `height` and has `device` render into it, in `format`,
+    /// for `usage` (`TextureUsage` bits).
+    pub fn configure(
+        &self,
+        device: &Device,
+        format: Format,
+        usage: i32,
+        width: i32,
+        height: i32,
+    ) -> Result<(), String> {
+        self.inner
+            .configure(&device.inner, format, usage, width, height)
+    }
+
+    /// This frame's texture.
+    pub fn current_texture(&self) -> Result<Texture, String> {
+        Ok(Texture {
+            inner: self.inner.current_texture()?,
+        })
+    }
 }
 
 /// A `GPUAdapter`.

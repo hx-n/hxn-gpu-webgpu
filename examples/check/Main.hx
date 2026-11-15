@@ -28,11 +28,11 @@ class Main {
 		}
 		instance.requestAdapter().then(adapter -> {
 			adapter.requestDevice().then(device -> {
-				compute(device, () -> render(device, () -> textured(device, () -> {
+				compute(device, () -> render(device, () -> textured(device, () -> canvas(instance, adapter, device, () -> {
 					device.close();
 					adapter.close();
 					instance.close();
-				})));
+				}))));
 			}, failed);
 		}, e -> Sys.println('no WebGPU adapter: ${e.message}'));
 	}
@@ -127,6 +127,31 @@ class Main {
 				o.close();
 			next();
 		});
+	}
+
+	/** A frame of the web page's canvas cleared to red, copied out before it is shown. **/
+	static function canvas(instance:Instance, adapter:Adapter, device:Device, next:() -> Void) {
+		var surface = instance.createCanvasSurface();
+		var format = surface.preferredFormat(adapter);
+		surface.configure(device, format, TextureUsage.RenderAttachment | TextureUsage.CopySrc, 64, 64);
+		var frame = surface.currentTexture();
+		var encoder = device.createCommandEncoder();
+		var pass = encoder.beginRenderPass(frame, 1, 0, 0, 1);
+		pass.end();
+		var pitch = 256;
+		var readback = device.createBuffer(pitch * 64, BufferUsage.MapRead | BufferUsage.CopyDst);
+		encoder.copyTextureToBuffer(frame, readback, pitch);
+		device.submit(encoder);
+		// Red is the first channel of Rgba8 and the third of Bgra8.
+		var expected = format == Format.Rgba8Unorm ? [255, 0, 0, 255] : [0, 0, 255, 255];
+		readback.read(0, pitch * 64).then(pixels -> {
+			for (c in 0...4)
+				check(pixels.get(c) == expected[c], 'canvas: channel $c is ${pixels.get(c)}, not ${expected[c]}');
+			Sys.println('canvas: a ${frame.width()}x${frame.height()} frame cleared to red');
+			for (o in ([pass, encoder, readback, frame, surface] : Array<{function close():Void;}>))
+				o.close();
+			next();
+		}, failed);
 	}
 
 	static function textured(device:Device, next:() -> Void) {

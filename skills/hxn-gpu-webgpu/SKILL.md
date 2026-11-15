@@ -63,6 +63,11 @@ Instance.create().requestAdapter().then(adapter -> adapter.requestDevice().then(
 }));
 ```
 
+Canvas: `var surface = instance.createCanvasSurface()`, then
+`surface.configure(device, surface.preferredFormat(adapter), TextureUsage.RenderAttachment, w, h)`;
+each frame, render into `surface.currentTexture()`. The frame is shown when
+the program returns to the browser's event loop.
+
 Compute: `createComputePipeline(module, "compute_main", layout, constants)`,
 `encoder.beginComputePass()`, `setPipeline`, `setBindGroup`,
 `dispatch(x, y, z)`, `end()`. Textures: `device.writeTexture(texture, bytes,

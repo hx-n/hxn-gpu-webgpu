@@ -55,4 +55,5 @@ jobs:
           grep -q '^compute: 64 values' check.txt
           grep -q '^render: 4x4 pixels' check.txt
           grep -q '^textured: 4x4 pixels' check.txt
+          grep -q '^canvas: a 64x64 frame' check.txt
           ! grep -q '^WebGPU .*error' check.txt
