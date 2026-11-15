@@ -4,7 +4,7 @@ import haxe.io.Bytes;
 import Shaders;
 
 /**
-	What CI runs in a page: a compute shader over a buffer, a render pass into
+	What CI runs in a web page: a compute shader over a buffer, a render pass into
 	a texture, and a pass sampling a texture, each read back through a mapped
 	buffer and checked. Every result WebGPU gives later arrives in `then`, from
 	the page's event loop. It needs a browser with WebGPU, and prints the same

@@ -1,6 +1,6 @@
 ---
 name: hxn-gpu-webgpu
-description: Drive the GPU from Haxe in the browser through WebGPU with the hxn-gpu-webgpu haxelib (package `gpu.webgpu`), for hxcpp programs compiled to wasm with `-D emscripten` and threaded Ash programs (`-D wasm -D hxn_threads`); HashLink and CPPIA do not run in a browser. Use when a Haxe program in a page runs compute shaders or renders with WebGPU, reads buffers back, or uses HXSL shaders from hxnsl as WGSL.
+description: Drive the GPU from Haxe in the browser through WebGPU with the hxn-gpu-webgpu haxelib (package `gpu.webgpu`), for hxcpp programs compiled to wasm with `-D emscripten` and threaded Ash programs (`-D wasm -D hxn_threads`); HashLink and CPPIA do not run in a browser. Use when a Haxe program in a web page runs compute shaders or renders with WebGPU, reads buffers back, or uses HXSL shaders from hxnsl as WGSL.
 ---
 
 # hxn-gpu-webgpu
@@ -71,18 +71,18 @@ bytesPerRow)`, `device.createSampler(Filter.Linear, AddressMode.ClampToEdge)`,
 
 ## Rules
 
-- Under hxcpp in a page use `then`, never `await`: waiting blocks the page's
-  thread, and the browser's callbacks only run when it is free. An Ash
-  program runs in a Worker, so waiting there does not block the page.
+- Under hxcpp, deliver a future with `then`, never `await`: `await` blocks
+  the web page's only thread, and the browser resolves WebGPU's promises only
+  while that thread is free. An Ash program runs in a Worker, so waiting there
+  does not block the web page.
 - Synchronization is WebGPU's: no barriers. `device.completed()` settles when
   submitted work has finished.
 - `Device.submit(encoder)` finishes the encoder; record a new one after.
   End each pass before the next command on its encoder.
 - Copies from textures need rows a multiple of 256 bytes apart; buffer sizes
   and `writeBuffer` lengths a multiple of 4.
-- WebGPU's validation errors arrive later: under hxcpp on stderr as
-  `WebGPU validation error: ...`, under Ash in the agent Worker's console as
-  `WebGPU error: ...`. Failures making objects are thrown.
+- Validation errors are logged in the browser console. Failures making
+  objects are thrown.
 - Every object holds its WebGPU object until `close()`.
 
 ## Reference

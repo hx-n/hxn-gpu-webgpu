@@ -254,7 +254,7 @@ fn start() -> Result<(), String> {
         Ok(())
     } else {
         Err(format!(
-            "no page started the WebGPU agent: run the program in a page Ash serves, with {AGENT}.mjs beside it"
+            "no web page started the WebGPU agent: run the program in the web page Ash writes, served by `ash serve`, with {AGENT}.mjs beside it"
         ))
     }
 }

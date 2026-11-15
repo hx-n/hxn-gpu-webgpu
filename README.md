@@ -5,7 +5,7 @@
 WebGPU for Haxe in the browser. It keeps WebGPU's own API: an instance
 gives an adapter, an adapter a device, and a device makes buffers, textures,
 bind groups and pipelines, and submits what command encoders record. The
-library is Rust, with a backend for each way a Haxe program reaches a page:
+library is Rust, with a backend for each way a Haxe program reaches a web page:
 
 | Runtime | In the browser |
 |---|---|
@@ -90,9 +90,10 @@ which the compile copies beside `main.hl`. Ash writes the page beside
 `main.wasm`. A threaded program needs shared memory, so the page has to be
 served with the cross-origin isolation headers, which `ash serve` sends.
 
-Under hxcpp, use `then` in a page: `await` blocks the page's only thread,
-and the browser's callbacks never run while it does. An Ash program runs in
-a Worker, where waiting does not block the page.
+Under hxcpp, deliver a future with `then`, not `await`: `await` blocks the
+web page's only thread, and the browser resolves WebGPU's promises only while
+that thread is free. An Ash program runs in a Worker, where waiting does not
+block the web page.
 
 ## Classes
 
@@ -111,10 +112,8 @@ All in the package `gpu.webgpu`:
 | `CommandEncoder`, `ComputePass`, `RenderPass` | Passes and copies, recorded until `Device.submit`. |
 
 Every object holds its WebGPU object until `close()`. A failure WebGPU
-reports at once is thrown as a Haxe exception. A validation error it reports
-later, outside any error scope, goes to the console: under hxcpp to stderr,
-as `WebGPU validation error: ...`; under Ash to the console of the agent's
-Worker, as `WebGPU error: ...`, which the program does not see.
+reports at once is thrown as a Haxe exception. Validation errors are logged
+in the browser console.
 
 ## Shaders from hxnsl
 

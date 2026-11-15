@@ -273,8 +273,8 @@ impl Adapter {
             .join(" ")
     }
 
-    /// A device with the default limits and no extra features. WebGPU's errors outside an
-    /// error scope are printed to stderr as `WebGPU validation error: ...`.
+    /// A device with the default limits and no extra features. Validation errors are logged in
+    /// the browser console.
     pub fn request_device(&self) -> Future<crate::Device> {
         let (completer, future) = hxn_future::pending();
         let mut descriptor: WGPUDeviceDescriptor = unsafe { std::mem::zeroed() };

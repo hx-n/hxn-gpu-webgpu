@@ -1,6 +1,6 @@
 name: Browser
 
-# The check as a page in headless Chrome, with WebGPU on the runner's GPU on
+# The check as a web page in headless Chrome, with WebGPU on the runner's GPU on
 # macOS and SwiftShader on Linux: hxcpp through Emscripten, served by emrun,
 # and a threaded Ash program, served by `ash serve`, whose WebGPU agent runs in
 # a Worker of its own.
