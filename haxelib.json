@@ -1,0 +1,11 @@
+{
+  "name": "hxn-gpu-webgpu",
+  "version": "0.1.0",
+  "description": "WebGPU for Haxe in the browser, through hxcpp and Emscripten: devices, buffers, textures, bind groups, pipelines and command encoders",
+  "url": "https://github.com/hx-n/hxn-gpu-webgpu",
+  "license": "Apache",
+  "tags": ["webgpu", "gpu", "haxe", "graphics", "compute", "wgsl", "wasm", "emscripten", "browser"],
+  "contributors": ["darmie", "rayzor"],
+  "releasenote": "First release.",
+  "dependencies": { "hxn": "0.3.2" }
+}

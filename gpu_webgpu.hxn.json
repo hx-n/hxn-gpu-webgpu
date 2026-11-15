@@ -1,0 +1,557 @@
+{
+  "hxn": 1,
+  "library": "gpu_webgpu",
+  "package": "gpu.webgpu",
+  "enums": [
+    {
+      "name": "Format",
+      "docs": "A texture format, webgpu.h's values.",
+      "variants": [{ "name": "R8Unorm", "value": 1 }, { "name": "R32Float", "value": 14 }, { "name": "R32Uint", "value": 15 }, { "name": "Rgba8Unorm", "value": 22 }, { "name": "Rgba8UnormSrgb", "value": 23 }, { "name": "Bgra8Unorm", "value": 27 }, { "name": "Bgra8UnormSrgb", "value": 28 }, { "name": "Rg32Float", "value": 33 }, { "name": "Rgba16Float", "value": 40 }, { "name": "Rgba32Float", "value": 41 }, { "name": "Depth24Plus", "value": 46 }, { "name": "Depth32Float", "value": 48 }]
+    },
+    {
+      "name": "VertexFormat",
+      "docs": "A vertex attribute's format, webgpu.h's values.",
+      "variants": [{ "name": "Unorm8x4", "value": 9 }, { "name": "Float32", "value": 28 }, { "name": "Float32x2", "value": 29 }, { "name": "Float32x3", "value": 30 }, { "name": "Float32x4", "value": 31 }, { "name": "Uint32", "value": 32 }, { "name": "Uint32x2", "value": 33 }, { "name": "Uint32x4", "value": 35 }, { "name": "Sint32", "value": 36 }]
+    },
+    {
+      "name": "BufferUsage",
+      "docs": "`GPUBufferUsage` bits, webgpu.h's values, or-ed together.",
+      "variants": [{ "name": "MapRead", "value": 1 }, { "name": "MapWrite", "value": 2 }, { "name": "CopySrc", "value": 4 }, { "name": "CopyDst", "value": 8 }, { "name": "Index", "value": 16 }, { "name": "Vertex", "value": 32 }, { "name": "Uniform", "value": 64 }, { "name": "Storage", "value": 128 }]
+    },
+    {
+      "name": "TextureUsage",
+      "docs": "`GPUTextureUsage` bits, webgpu.h's values, or-ed together.",
+      "variants": [{ "name": "CopySrc", "value": 1 }, { "name": "CopyDst", "value": 2 }, { "name": "TextureBinding", "value": 4 }, { "name": "StorageBinding", "value": 8 }, { "name": "RenderAttachment", "value": 16 }]
+    },
+    {
+      "name": "ShaderStage",
+      "docs": "`GPUShaderStage` bits, which WebGPU and hxnsl's `LAYOUT` share.",
+      "variants": [{ "name": "Vertex", "value": 1 }, { "name": "Fragment", "value": 2 }, { "name": "Compute", "value": 4 }]
+    },
+    {
+      "name": "BindingKind",
+      "docs": "What a bind group layout entry binds.",
+      "variants": [{ "name": "Uniform", "value": 0 }, { "name": "Storage", "value": 1 }, { "name": "ReadOnlyStorage", "value": 2 }, { "name": "Sampler", "value": 3 }, { "name": "NonFilteringSampler", "value": 4 }, { "name": "ComparisonSampler", "value": 5 }, { "name": "Texture", "value": 6 }, { "name": "StorageTexture", "value": 7 }]
+    },
+    {
+      "name": "SampleType",
+      "docs": "A texture binding's sample type, webgpu.h's values.",
+      "variants": [{ "name": "Float", "value": 2 }, { "name": "UnfilterableFloat", "value": 3 }, { "name": "Depth", "value": 4 }, { "name": "Sint", "value": 5 }, { "name": "Uint", "value": 6 }]
+    },
+    {
+      "name": "ViewDimension",
+      "docs": "A texture binding's view dimension, webgpu.h's values.",
+      "variants": [{ "name": "D1", "value": 1 }, { "name": "D2", "value": 2 }, { "name": "D2Array", "value": 3 }, { "name": "Cube", "value": 4 }, { "name": "CubeArray", "value": 5 }, { "name": "D3", "value": 6 }]
+    },
+    {
+      "name": "StorageAccess",
+      "docs": "A storage texture binding's access, webgpu.h's values.",
+      "variants": [{ "name": "WriteOnly", "value": 2 }, { "name": "ReadOnly", "value": 3 }, { "name": "ReadWrite", "value": 4 }]
+    },
+    {
+      "name": "Topology",
+      "docs": "A render pipeline's primitive topology, webgpu.h's values.",
+      "variants": [{ "name": "PointList", "value": 1 }, { "name": "LineList", "value": 2 }, { "name": "LineStrip", "value": 3 }, { "name": "TriangleList", "value": 4 }, { "name": "TriangleStrip", "value": 5 }]
+    },
+    {
+      "name": "Filter",
+      "docs": "A sampler's filter, webgpu.h's values.",
+      "variants": [{ "name": "Nearest", "value": 1 }, { "name": "Linear", "value": 2 }]
+    },
+    {
+      "name": "AddressMode",
+      "docs": "A sampler's address mode, webgpu.h's values.",
+      "variants": [{ "name": "ClampToEdge", "value": 1 }, { "name": "Repeat", "value": 2 }, { "name": "MirrorRepeat", "value": 3 }]
+    }
+  ],
+  "records": [
+    {
+      "name": "LayoutEntry",
+      "docs": "One entry of a bind group layout. `sample_type`, `view_dimension`, `multisampled`,\n`format` and `access` apply to texture and storage texture entries.",
+      "fields": [
+        { "name": "binding", "type": "i32" },
+        { "name": "visibility", "type": "i32" },
+        { "name": "kind", "type": "BindingKind" },
+        { "name": "sample_type", "type": "SampleType" },
+        { "name": "view_dimension", "type": "ViewDimension" },
+        { "name": "multisampled", "type": "bool" },
+        { "name": "format", "type": "Format" },
+        { "name": "access", "type": "StorageAccess" }
+      ]
+    },
+    {
+      "name": "GroupLayout",
+      "docs": "The layout of one bind group.",
+      "fields": [
+        { "name": "entries", "type": "list<LayoutEntry>" }
+      ]
+    },
+    {
+      "name": "Constant",
+      "docs": "A pipeline-overridable constant: a WGSL `override` by its name, as hxnsl's `CONST_` keys\ngive it.",
+      "fields": [
+        { "name": "key", "type": "str" },
+        { "name": "value", "type": "f64" }
+      ]
+    },
+    {
+      "name": "VertexAttribute",
+      "docs": "One attribute of a vertex buffer.",
+      "fields": [
+        { "name": "location", "type": "i32" },
+        { "name": "format", "type": "VertexFormat" },
+        { "name": "offset", "type": "i32" }
+      ]
+    }
+  ],
+  "interfaces": [
+    {
+      "name": "Instance",
+      "docs": "A WebGPU instance: `navigator.gpu`.",
+      "methods": [
+        {
+          "name": "create",
+          "kind": "static",
+          "params": [],
+          "returns": "Instance",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "request_adapter",
+          "docs": "The browser's adapter, its default for power preference.",
+          "kind": "method",
+          "params": [],
+          "returns": "future<Adapter>",
+          "fallible": false,
+          "blocking": false
+        }
+      ]
+    },
+    {
+      "name": "Adapter",
+      "docs": "A `GPUAdapter`.",
+      "methods": [
+        {
+          "name": "info",
+          "docs": "The adapter's vendor, architecture and description, as the browser reports them.",
+          "kind": "method",
+          "params": [],
+          "returns": "str",
+          "fallible": false,
+          "blocking": false
+        },
+        {
+          "name": "request_device",
+          "docs": "A device with the default limits and no extra features. WebGPU's errors outside an\nerror scope are printed to stderr as `WebGPU validation error: ...`.",
+          "kind": "method",
+          "params": [],
+          "returns": "future<Device>",
+          "fallible": false,
+          "blocking": false
+        }
+      ]
+    },
+    {
+      "name": "ShaderModule",
+      "docs": "A `GPUShaderModule` of WGSL.",
+      "methods": []
+    },
+    {
+      "name": "PipelineLayout",
+      "docs": "A `GPUPipelineLayout`.",
+      "methods": []
+    },
+    {
+      "name": "ComputePipeline",
+      "docs": "A `GPUComputePipeline`.",
+      "methods": []
+    },
+    {
+      "name": "RenderPipeline",
+      "docs": "A `GPURenderPipeline`.",
+      "methods": []
+    },
+    {
+      "name": "Sampler",
+      "docs": "A `GPUSampler`.",
+      "methods": []
+    },
+    {
+      "name": "BindGroup",
+      "docs": "A `GPUBindGroup`.",
+      "methods": []
+    },
+    {
+      "name": "Device",
+      "docs": "A `GPUDevice` and its queue.",
+      "methods": [
+        {
+          "name": "create_buffer",
+          "docs": "A buffer of `size` bytes, a multiple of 4, for `usage` (`BufferUsage` bits).",
+          "kind": "method",
+          "params": [{ "name": "size", "type": "i64" }, { "name": "usage", "type": "i32" }],
+          "returns": "Buffer",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "create_buffer_with",
+          "docs": "A buffer holding `bytes`, padded with zeros to a multiple of 4, for `usage`\n(`BufferUsage` bits).",
+          "kind": "method",
+          "params": [{ "name": "bytes", "type": "bytes" }, { "name": "usage", "type": "i32" }],
+          "returns": "Buffer",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "create_texture",
+          "docs": "A 2D texture of one level, for `usage` (`TextureUsage` bits), with one view of all of it.",
+          "kind": "method",
+          "params": [{ "name": "width", "type": "i32" }, { "name": "height", "type": "i32" }, { "name": "format", "type": "Format" }, { "name": "usage", "type": "i32" }],
+          "returns": "Texture",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "create_sampler",
+          "docs": "A sampler filtering with `filter` for magnification, minification and mipmaps, and\naddressing with `address` on every axis.",
+          "kind": "method",
+          "params": [{ "name": "filter", "type": "Filter" }, { "name": "address", "type": "AddressMode" }],
+          "returns": "Sampler",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "create_shader_module",
+          "docs": "A shader module of WGSL source.",
+          "kind": "method",
+          "params": [{ "name": "wgsl", "type": "str" }],
+          "returns": "ShaderModule",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "create_bind_group_layouts",
+          "docs": "A bind group layout for each of `groups`, group 0 first.",
+          "kind": "method",
+          "params": [{ "name": "groups", "type": "list<GroupLayout>" }],
+          "returns": "BindGroupLayouts",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "create_pipeline_layout",
+          "docs": "A pipeline layout of `layouts`.",
+          "kind": "method",
+          "params": [{ "name": "layouts", "type": "BindGroupLayouts" }],
+          "returns": "PipelineLayout",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "create_compute_pipeline",
+          "docs": "A compute pipeline running `entry` of `module`, with `constants` set.",
+          "kind": "method",
+          "params": [{ "name": "module", "type": "ShaderModule" }, { "name": "entry", "type": "str" }, { "name": "layout", "type": "PipelineLayout" }, { "name": "constants", "type": "list<Constant>" }],
+          "returns": "ComputePipeline",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "create_render_pipeline",
+          "docs": "A render pipeline drawing `topology` into one color target of `format`, from one vertex\nbuffer of `stride` bytes per vertex laid out as `attributes`, with `constants` set in both\nstages.",
+          "kind": "method",
+          "params": [{ "name": "module", "type": "ShaderModule" }, { "name": "vertex_entry", "type": "str" }, { "name": "fragment_entry", "type": "str" }, { "name": "layout", "type": "PipelineLayout" }, { "name": "format", "type": "Format" }, { "name": "topology", "type": "Topology" }, { "name": "stride", "type": "i32" }, { "name": "attributes", "type": "list<VertexAttribute>" }, { "name": "constants", "type": "list<Constant>" }],
+          "returns": "RenderPipeline",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "create_bind_group",
+          "docs": "Bind group `group` of `layouts`, of the resources `entries` holds.",
+          "kind": "method",
+          "params": [{ "name": "layouts", "type": "BindGroupLayouts" }, { "name": "group", "type": "i32" }, { "name": "entries", "type": "BindGroupEntries" }],
+          "returns": "BindGroup",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "create_command_encoder",
+          "docs": "An empty command encoder.",
+          "kind": "method",
+          "params": [],
+          "returns": "CommandEncoder",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "submit",
+          "docs": "Finishes `encoder` and submits its commands to the queue.",
+          "kind": "method",
+          "params": [{ "name": "encoder", "type": "CommandEncoder", "borrow": "exclusive" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "write_buffer",
+          "docs": "Writes `bytes`, a multiple of 4, at `offset` in `buffer`, in queue order.",
+          "kind": "method",
+          "params": [{ "name": "buffer", "type": "Buffer" }, { "name": "offset", "type": "i64" }, { "name": "bytes", "type": "bytes" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "write_texture",
+          "docs": "Writes all of `texture` from `bytes`, rows `bytes_per_row` apart, in queue order.",
+          "kind": "method",
+          "params": [{ "name": "texture", "type": "Texture" }, { "name": "bytes", "type": "bytes" }, { "name": "bytes_per_row", "type": "i32" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "completed",
+          "docs": "Settles when the GPU has finished the work submitted so far.",
+          "kind": "method",
+          "params": [],
+          "returns": "future<void>",
+          "fallible": false,
+          "blocking": false
+        }
+      ]
+    },
+    {
+      "name": "BindGroupLayouts",
+      "docs": "The bind group layouts of a pipeline, group 0 first.",
+      "methods": [
+        {
+          "name": "count",
+          "docs": "The number of groups.",
+          "kind": "method",
+          "params": [],
+          "returns": "i32",
+          "fallible": false,
+          "blocking": false
+        }
+      ]
+    },
+    {
+      "name": "Buffer",
+      "docs": "A `GPUBuffer`.",
+      "methods": [
+        {
+          "name": "size",
+          "kind": "method",
+          "params": [],
+          "returns": "i64",
+          "fallible": false,
+          "blocking": false
+        },
+        {
+          "name": "read",
+          "docs": "Maps `length` bytes at `offset` for reading, copies them out and unmaps the buffer.\nThe buffer needs `BufferUsage.MapRead`; `offset` is a multiple of 8, `length` of 4.",
+          "kind": "method",
+          "params": [{ "name": "offset", "type": "i64" }, { "name": "length", "type": "i64" }],
+          "returns": "future<bytes>",
+          "fallible": true,
+          "blocking": false
+        }
+      ]
+    },
+    {
+      "name": "Texture",
+      "docs": "A 2D `GPUTexture` of one level, with one view of all of it.",
+      "methods": [
+        {
+          "name": "width",
+          "kind": "method",
+          "params": [],
+          "returns": "i32",
+          "fallible": false,
+          "blocking": false
+        },
+        {
+          "name": "height",
+          "kind": "method",
+          "params": [],
+          "returns": "i32",
+          "fallible": false,
+          "blocking": false
+        }
+      ]
+    },
+    {
+      "name": "BindGroupEntries",
+      "docs": "The resources of a bind group, by binding, before `Device.createBindGroup` makes it.",
+      "methods": [
+        {
+          "name": "create",
+          "kind": "static",
+          "params": [],
+          "returns": "BindGroupEntries",
+          "fallible": false,
+          "blocking": false
+        },
+        {
+          "name": "buffer",
+          "docs": "`size` bytes of `buffer` from `offset` at `binding`; a negative `size` binds the rest.",
+          "kind": "mutating",
+          "params": [{ "name": "binding", "type": "i32" }, { "name": "buffer", "type": "Buffer" }, { "name": "offset", "type": "i64" }, { "name": "size", "type": "i64" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "texture",
+          "docs": "The view of `texture` at `binding`.",
+          "kind": "mutating",
+          "params": [{ "name": "binding", "type": "i32" }, { "name": "texture", "type": "Texture" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "sampler",
+          "docs": "`sampler` at `binding`.",
+          "kind": "mutating",
+          "params": [{ "name": "binding", "type": "i32" }, { "name": "sampler", "type": "Sampler" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        }
+      ]
+    },
+    {
+      "name": "CommandEncoder",
+      "docs": "A `GPUCommandEncoder`, recording until `Device.submit`.",
+      "methods": [
+        {
+          "name": "begin_compute_pass",
+          "docs": "A compute pass, recording until its `end`.",
+          "kind": "mutating",
+          "params": [],
+          "returns": "ComputePass",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "begin_render_pass",
+          "docs": "A render pass into `target`, cleared first to the color `r`, `g`, `b`, `a`.",
+          "kind": "mutating",
+          "params": [{ "name": "target", "type": "Texture" }, { "name": "r", "type": "f64" }, { "name": "g", "type": "f64" }, { "name": "b", "type": "f64" }, { "name": "a", "type": "f64" }],
+          "returns": "RenderPass",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "copy_buffer_to_buffer",
+          "docs": "Copies `size` bytes from `source` at `source_offset` to `destination` at\n`destination_offset`.",
+          "kind": "mutating",
+          "params": [{ "name": "source", "type": "Buffer" }, { "name": "source_offset", "type": "i64" }, { "name": "destination", "type": "Buffer" }, { "name": "destination_offset", "type": "i64" }, { "name": "size", "type": "i64" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "copy_texture_to_buffer",
+          "docs": "Copies all of `texture` into `buffer`, rows `bytes_per_row` apart, a multiple of 256.",
+          "kind": "mutating",
+          "params": [{ "name": "texture", "type": "Texture" }, { "name": "buffer", "type": "Buffer" }, { "name": "bytes_per_row", "type": "i32" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        }
+      ]
+    },
+    {
+      "name": "ComputePass",
+      "docs": "A `GPUComputePassEncoder`.",
+      "methods": [
+        {
+          "name": "set_pipeline",
+          "kind": "mutating",
+          "params": [{ "name": "pipeline", "type": "ComputePipeline" }],
+          "returns": "void",
+          "fallible": false,
+          "blocking": false
+        },
+        {
+          "name": "set_bind_group",
+          "kind": "mutating",
+          "params": [{ "name": "index", "type": "i32" }, { "name": "group", "type": "BindGroup" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "dispatch",
+          "kind": "mutating",
+          "params": [{ "name": "x", "type": "i32" }, { "name": "y", "type": "i32" }, { "name": "z", "type": "i32" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "end",
+          "docs": "Ends the pass; the encoder records again after it.",
+          "kind": "mutating",
+          "params": [],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        }
+      ]
+    },
+    {
+      "name": "RenderPass",
+      "docs": "A `GPURenderPassEncoder`.",
+      "methods": [
+        {
+          "name": "set_pipeline",
+          "kind": "mutating",
+          "params": [{ "name": "pipeline", "type": "RenderPipeline" }],
+          "returns": "void",
+          "fallible": false,
+          "blocking": false
+        },
+        {
+          "name": "set_bind_group",
+          "kind": "mutating",
+          "params": [{ "name": "index", "type": "i32" }, { "name": "group", "type": "BindGroup" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "set_vertex_buffer",
+          "docs": "Reads vertices for `slot` from all of `buffer`.",
+          "kind": "mutating",
+          "params": [{ "name": "slot", "type": "i32" }, { "name": "buffer", "type": "Buffer" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "draw",
+          "kind": "mutating",
+          "params": [{ "name": "vertices", "type": "i32" }, { "name": "instances", "type": "i32" }, { "name": "first_vertex", "type": "i32" }, { "name": "first_instance", "type": "i32" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "end",
+          "docs": "Ends the pass; the encoder records again after it.",
+          "kind": "mutating",
+          "params": [],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,44 @@
+name: Browser
+
+# The check as a page: hxcpp through Emscripten, served by emrun to headless
+# Chrome, with WebGPU on the runner's GPU on macOS and SwiftShader on Linux.
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  check:
+    name: Chrome, ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            flags: --enable-unsafe-webgpu
+          - os: ubuntu-latest
+            flags: --enable-unsafe-webgpu --enable-unsafe-swiftshader --use-webgpu-adapter=swiftshader --enable-features=Vulkan
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      # Fails without WebGPU, rather than passing on the line the check prints
+      # without it, and on any error WebGPU reports.
+      - env:
+          HXN_BROWSER_ARGS: ${{ matrix.flags }}
+        run: |
+          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+          hxn check cpp --wasm --browser 2>&1 | tee check.txt
+          grep -q '^compute: 64 values' check.txt
+          grep -q '^render: 4x4 pixels' check.txt
+          grep -q '^textured: 4x4 pixels' check.txt
+          ! grep -q '^WebGPU .*error' check.txt

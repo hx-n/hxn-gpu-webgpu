@@ -1,0 +1,45 @@
+name: setup
+description: Rust for Emscripten, Haxe, hxcpp, the Emscripten SDK, hxnsl, and the hxn command at the revision Cargo.toml pins.
+
+runs:
+  using: composite
+  steps:
+    - uses: dtolnay/rust-toolchain@master
+      with:
+        toolchain: nightly-2026-08-25
+        targets: wasm32-unknown-emscripten
+    - uses: Swatinem/rust-cache@v2
+    - if: runner.os == 'Linux'
+      uses: krdlab/setup-haxe@v1
+      with:
+        haxe-version: 4.3.6
+    # setup-haxe has no Haxe for arm64 macOS, which Homebrew has.
+    - if: runner.os == 'macOS'
+      shell: bash
+      run: |
+        brew install haxe
+        mkdir -p "$HOME/haxelib" && haxelib setup "$HOME/haxelib"
+    # From git, whose Emscripten toolchain compiles with wasm exceptions, as
+    # Rust's standard library for Emscripten unwinds.
+    - shell: bash
+      run: |
+        haxelib git hxcpp https://github.com/HaxeFoundation/hxcpp --quiet
+        dir="$(haxelib libpath hxcpp)"
+        git -C "$dir" checkout -q 615adc73d5ef28f3f74ea47977c39c4f25ce256d
+        (cd "$dir/tools/hxcpp" && haxe compile.hxml)
+    - shell: bash
+      run: |
+        git clone --depth 1 https://github.com/emscripten-core/emsdk "$RUNNER_TEMP/emsdk"
+        "$RUNNER_TEMP/emsdk/emsdk" install 5.0.7
+        "$RUNNER_TEMP/emsdk/emsdk" activate 5.0.7
+    # The command of the hxn revision the crate depends on, since the two must
+    # match.
+    - shell: bash
+      run: |
+        rev="$(sed -n 's|^hxn = { git = "https://github.com/hx-n/hxn.git", rev = "\([0-9a-f]*\)" }|\1|p' Cargo.toml)"
+        test -n "$rev"
+        cargo install --git https://github.com/hx-n/hxn.git --rev "$rev" --locked hxn-cli
+        hxn version
+    # hxnsl, which writes the check's shaders, with its tool prebuilt.
+    - shell: bash
+      run: haxelib install hxnsl --always
