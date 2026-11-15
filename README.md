@@ -2,12 +2,24 @@
 
 [![Browser](https://github.com/hx-n/hxn-gpu-webgpu/actions/workflows/browser.yml/badge.svg)](https://github.com/hx-n/hxn-gpu-webgpu/actions/workflows/browser.yml)
 
-WebGPU for Haxe in the browser, for programs that hxcpp compiles to wasm with
-Emscripten. It keeps WebGPU's own API: an instance gives an adapter, an
-adapter a device, and a device makes buffers, textures, bind groups and
-pipelines, and submits what command encoders record. The library is Rust
-over webgpu.h, which Emscripten's emdawnwebgpu port implements on the page's
-`navigator.gpu`.
+WebGPU for Haxe in the browser. It keeps WebGPU's own API: an instance
+gives an adapter, an adapter a device, and a device makes buffers, textures,
+bind groups and pipelines, and submits what command encoders record. The
+library is Rust over webgpu.h, which Emscripten's emdawnwebgpu port
+implements on the page's `navigator.gpu`.
+
+| Runtime | In the browser |
+|---|---|
+| hxcpp | Yes: `-cpp` with `-D emscripten`, which compiles the program to wasm. |
+| Ash | Not yet. Ash compiles HashLink bytecode to wasm, and loads this library as a side module that reaches WebGPU through `ash_host_agent`; that backend is next. |
+| HashLink | No: the HashLink VM does not run in a browser; Ash is how HashLink bytecode reaches one. |
+| CPPIA | No: hxn builds the script's host as a native hxcpp program. |
+
+Outside the browser, HashLink, Ash, hxcpp and CPPIA use the native drivers:
+[hxn-gpu-metal](https://github.com/hx-n/hxn-gpu-metal),
+[hxn-gpu-vulkan](https://github.com/hx-n/hxn-gpu-vulkan),
+[hxn-gpu-d3d12](https://github.com/hx-n/hxn-gpu-d3d12) and
+[hxn-gpu-gles](https://github.com/hx-n/hxn-gpu-gles).
 
 Shaders come from [hxnsl](https://github.com/hx-n/hxnsl), which writes WGSL
 at compile time and reports the bind group layouts in `LAYOUT`. The browser

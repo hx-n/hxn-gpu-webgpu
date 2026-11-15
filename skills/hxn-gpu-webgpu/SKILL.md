@@ -1,6 +1,6 @@
 ---
 name: hxn-gpu-webgpu
-description: Drive the GPU from Haxe in the browser through WebGPU with the hxn-gpu-webgpu haxelib (package `gpu.webgpu`), for programs hxcpp compiles to wasm with Emscripten. Use when a Haxe program in a page runs compute shaders or renders with WebGPU, reads buffers back, or uses HXSL shaders from hxnsl as WGSL.
+description: Drive the GPU from Haxe in the browser through WebGPU with the hxn-gpu-webgpu haxelib (package `gpu.webgpu`), for hxcpp programs compiled to wasm with `-D emscripten`; Ash's wasm build is not supported yet, and HashLink and CPPIA do not run in a browser. Use when a Haxe program in a page runs compute shaders or renders with WebGPU, reads buffers back, or uses HXSL shaders from hxnsl as WGSL.
 ---
 
 # hxn-gpu-webgpu
