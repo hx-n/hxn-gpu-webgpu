@@ -1,2 +1,2 @@
 --macro hxn.Bind.lib("gpu_webgpu")
---macro gpu.webgpu.Shaders.register()
+--macro hxn.gpu.webgpu.Shaders.register()

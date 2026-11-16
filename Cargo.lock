@@ -4,7 +4,8 @@ version = 4
 
 [[package]]
 name = "hxn"
-version = "0.3.4"
+version = "0.3.5"
+source = "git+https://github.com/hx-n/hxn.git?tag=v0.3.5#aafa0d817fd61ecda39b3fee03e941bdb5329ff4"
 dependencies = [
  "hxn-abi",
  "hxn-macros",
@@ -12,11 +13,13 @@ dependencies = [
 
 [[package]]
 name = "hxn-abi"
-version = "0.3.4"
+version = "0.3.5"
+source = "git+https://github.com/hx-n/hxn.git?tag=v0.3.5#aafa0d817fd61ecda39b3fee03e941bdb5329ff4"
 
 [[package]]
 name = "hxn-future"
-version = "0.3.4"
+version = "0.3.5"
+source = "git+https://github.com/hx-n/hxn.git?tag=v0.3.5#aafa0d817fd61ecda39b3fee03e941bdb5329ff4"
 dependencies = [
  "hxn-abi",
  "krio-core",
@@ -26,7 +29,7 @@ dependencies = [
 
 [[package]]
 name = "hxn-gpu-webgpu"
-version = "0.1.0"
+version = "0.2.0"
 dependencies = [
  "hxn",
  "hxn-future",
@@ -34,7 +37,8 @@ dependencies = [
 
 [[package]]
 name = "hxn-macros"
-version = "0.3.4"
+version = "0.3.5"
+source = "git+https://github.com/hx-n/hxn.git?tag=v0.3.5#aafa0d817fd61ecda39b3fee03e941bdb5329ff4"
 
 [[package]]
 name = "krio-core"
@@ -57,11 +61,3 @@ source = "git+https://github.com/darmie/krio?rev=ecf740f8de98965d3c0f238b4d22636
 dependencies = [
  "krio-core",
 ]
-
-[[patch.unused]]
-name = "hxn-c"
-version = "0.3.4"
-
-[[patch.unused]]
-name = "hxn-hl"
-version = "0.3.4"

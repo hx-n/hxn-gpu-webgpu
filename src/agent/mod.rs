@@ -181,7 +181,12 @@ fn settle_answered() {
         let done = answer.state() == 1;
         match settle {
             Settle::Adapter(completer, adapter) => {
-                if done {
+                // The reply is one byte, 0 when the browser's requestAdapter returned null.
+                if done && answer.bytes().first() == Some(&0) {
+                    completer.reject(String::from(
+                        "no WebGPU adapter: WebGPU not available on this browser (requestAdapter returned null)",
+                    ));
+                } else if done {
                     completer.resolve(crate::Adapter {
                         inner: Adapter {
                             raw: Arc::new(Object(adapter)),

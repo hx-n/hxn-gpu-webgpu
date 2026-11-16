@@ -1,7 +1,7 @@
 {
   "hxn": 1,
   "library": "gpu_webgpu",
-  "package": "gpu.webgpu",
+  "package": "hxn.gpu.webgpu",
   "enums": [
     {
       "name": "Format",

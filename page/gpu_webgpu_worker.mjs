@@ -26,4 +26,11 @@ start(async ({ canvas }) => {
     roots.set(3, canvas);
   }
   return roots;
+}, (wire) => {
+  // A command that throws has no reply to carry the failure, so it goes to the shim,
+  // which ends the web page with it.
+  wire.error = (e, op) => {
+    console.error(`${op}:`, e);
+    self.postMessage({ fail: `${op}: ${e && e.stack !== undefined ? e.stack : e}` });
+  };
 });

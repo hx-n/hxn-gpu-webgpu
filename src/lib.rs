@@ -28,7 +28,7 @@ mod backend;
 
 use hxn_future::Future;
 
-hxn::package!("gpu.webgpu");
+hxn::package!("hxn.gpu.webgpu");
 
 /// A texture format, webgpu.h's values.
 #[hxn::data]

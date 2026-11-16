@@ -42,9 +42,9 @@ export class Wire {
       }
     }
   }
-  /// A command that threw, which has no reply to carry it.
-  error(e) {
-    console.error(e);
+  /// A command that threw, which has no reply to carry it: `op` is its IDL name.
+  error(e, op) {
+    console.error(`${op}:`, e);
   }
 }
 
@@ -168,7 +168,7 @@ export function execute(wire, at, len) {
     try {
       OPS[op](wire, r);
     } catch (e) {
-      wire.error(e);
+      wire.error(e, NAMES[op] ?? `op ${op}`);
     }
     at += 8 + n;
   }
@@ -1598,7 +1598,9 @@ export const OPS = [
     const result = r.u32();
     const reply = r.u32();
     const a0 = r.u8() ? read_GPURequestAdapterOptions(r) : undefined;
-    (a0 === undefined ? self.requestAdapter() : self.requestAdapter(a0)).then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, encode((w) => w.u8(v ? 1 : 0))); }, (e) => wire.reply(reply, 2, message(e)));
+    let p;
+    try { p = (a0 === undefined ? self.requestAdapter() : self.requestAdapter(a0)); } catch (e) { wire.reply(reply, 2, message(e)); return; }
+    p.then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, encode((w) => w.u8(v ? 1 : 0))); }, (e) => wire.reply(reply, 2, message(e)));
   },
   // 46: GPU.getPreferredCanvasFormat
   (wire, r) => {
@@ -1621,7 +1623,9 @@ export const OPS = [
     const result = r.u32();
     const reply = r.u32();
     const a0 = r.u8() ? read_GPUDeviceDescriptor(r) : undefined;
-    (a0 === undefined ? self.requestDevice() : self.requestDevice(a0)).then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
+    let p;
+    try { p = (a0 === undefined ? self.requestDevice() : self.requestDevice(a0)); } catch (e) { wire.reply(reply, 2, message(e)); return; }
+    p.then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
   },
   // 49: GPUAdapter.features
   (wire, r) => {
@@ -1727,7 +1731,9 @@ export const OPS = [
     const result = r.u32();
     const reply = r.u32();
     const a0 = read_GPUComputePipelineDescriptor(r);
-    self.createComputePipelineAsync(a0).then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
+    let p;
+    try { p = self.createComputePipelineAsync(a0); } catch (e) { wire.reply(reply, 2, message(e)); return; }
+    p.then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
   },
   // 63: GPUDevice.createRenderPipelineAsync
   (wire, r) => {
@@ -1735,7 +1741,9 @@ export const OPS = [
     const result = r.u32();
     const reply = r.u32();
     const a0 = read_GPURenderPipelineDescriptor(r);
-    self.createRenderPipelineAsync(a0).then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
+    let p;
+    try { p = self.createRenderPipelineAsync(a0); } catch (e) { wire.reply(reply, 2, message(e)); return; }
+    p.then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
   },
   // 64: GPUDevice.createCommandEncoder
   (wire, r) => {
@@ -1772,7 +1780,9 @@ export const OPS = [
     const self = wire.get(r.u32());
     const result = r.u32();
     const reply = r.u32();
-    self.popErrorScope().then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, encode((w) => w.u8(v ? 1 : 0))); }, (e) => wire.reply(reply, 2, message(e)));
+    let p;
+    try { p = self.popErrorScope(); } catch (e) { wire.reply(reply, 2, message(e)); return; }
+    p.then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, encode((w) => w.u8(v ? 1 : 0))); }, (e) => wire.reply(reply, 2, message(e)));
   },
   // 69: GPUDevice.features
   (wire, r) => {
@@ -1807,7 +1817,9 @@ export const OPS = [
     const self = wire.get(r.u32());
     const result = r.u32();
     const reply = r.u32();
-    self.lost.then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
+    let p;
+    try { p = self.lost; } catch (e) { wire.reply(reply, 2, message(e)); return; }
+    p.then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
   },
   // 74: GPUDevice.label
   (wire, r) => {
@@ -1830,7 +1842,9 @@ export const OPS = [
     const a0 = r.u32();
     const a1 = r.u8() ? r.u64() : undefined;
     const a2 = r.u8() ? r.u64() : undefined;
-    (a2 === undefined ? (a1 === undefined ? self.mapAsync(a0) : self.mapAsync(a0, a1)) : self.mapAsync(a0, a1, a2)).then((v) => { wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
+    let p;
+    try { p = (a2 === undefined ? (a1 === undefined ? self.mapAsync(a0) : self.mapAsync(a0, a1)) : self.mapAsync(a0, a1, a2)); } catch (e) { wire.reply(reply, 2, message(e)); return; }
+    p.then((v) => { wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
   },
   // 77: GPUBuffer.getMappedRange
   (wire, r) => {
@@ -2089,7 +2103,9 @@ export const OPS = [
     const self = wire.get(r.u32());
     const result = r.u32();
     const reply = r.u32();
-    self.getCompilationInfo().then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
+    let p;
+    try { p = self.getCompilationInfo(); } catch (e) { wire.reply(reply, 2, message(e)); return; }
+    p.then((v) => { if (v) wire.set(result, v); wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
   },
   // 112: GPUShaderModule.label
   (wire, r) => {
@@ -2743,7 +2759,9 @@ export const OPS = [
   (wire, r) => {
     const self = wire.get(r.u32());
     const reply = r.u32();
-    self.onSubmittedWorkDone().then((v) => { wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
+    let p;
+    try { p = self.onSubmittedWorkDone(); } catch (e) { wire.reply(reply, 2, message(e)); return; }
+    p.then((v) => { wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
   },
   // 200: GPUQueue.writeBuffer
   (wire, r) => {
@@ -2902,4 +2920,229 @@ export const OPS = [
   (wire, r) => {
     wire.objects.delete(r.u32());
   },
+];
+
+export const NAMES = [
+  "GPUSupportedLimits.maxTextureDimension1D",
+  "GPUSupportedLimits.maxTextureDimension2D",
+  "GPUSupportedLimits.maxTextureDimension3D",
+  "GPUSupportedLimits.maxTextureArrayLayers",
+  "GPUSupportedLimits.maxBindGroups",
+  "GPUSupportedLimits.maxBindGroupsPlusVertexBuffers",
+  "GPUSupportedLimits.maxImmediateSize",
+  "GPUSupportedLimits.maxBindingsPerBindGroup",
+  "GPUSupportedLimits.maxDynamicUniformBuffersPerPipelineLayout",
+  "GPUSupportedLimits.maxDynamicStorageBuffersPerPipelineLayout",
+  "GPUSupportedLimits.maxSampledTexturesPerShaderStage",
+  "GPUSupportedLimits.maxSamplersPerShaderStage",
+  "GPUSupportedLimits.maxStorageBuffersPerShaderStage",
+  "GPUSupportedLimits.maxStorageBuffersInVertexStage",
+  "GPUSupportedLimits.maxStorageBuffersInFragmentStage",
+  "GPUSupportedLimits.maxStorageTexturesPerShaderStage",
+  "GPUSupportedLimits.maxStorageTexturesInVertexStage",
+  "GPUSupportedLimits.maxStorageTexturesInFragmentStage",
+  "GPUSupportedLimits.maxUniformBuffersPerShaderStage",
+  "GPUSupportedLimits.maxUniformBufferBindingSize",
+  "GPUSupportedLimits.maxStorageBufferBindingSize",
+  "GPUSupportedLimits.minUniformBufferOffsetAlignment",
+  "GPUSupportedLimits.minStorageBufferOffsetAlignment",
+  "GPUSupportedLimits.maxVertexBuffers",
+  "GPUSupportedLimits.maxBufferSize",
+  "GPUSupportedLimits.maxVertexAttributes",
+  "GPUSupportedLimits.maxVertexBufferArrayStride",
+  "GPUSupportedLimits.maxInterStageShaderVariables",
+  "GPUSupportedLimits.maxColorAttachments",
+  "GPUSupportedLimits.maxColorAttachmentBytesPerSample",
+  "GPUSupportedLimits.maxComputeWorkgroupStorageSize",
+  "GPUSupportedLimits.maxComputeInvocationsPerWorkgroup",
+  "GPUSupportedLimits.maxComputeWorkgroupSizeX",
+  "GPUSupportedLimits.maxComputeWorkgroupSizeY",
+  "GPUSupportedLimits.maxComputeWorkgroupSizeZ",
+  "GPUSupportedLimits.maxComputeWorkgroupsPerDimension",
+  "GPUSupportedFeatures.values",
+  "WGSLLanguageFeatures.values",
+  "GPUAdapterInfo.vendor",
+  "GPUAdapterInfo.architecture",
+  "GPUAdapterInfo.device",
+  "GPUAdapterInfo.description",
+  "GPUAdapterInfo.subgroupMinSize",
+  "GPUAdapterInfo.subgroupMaxSize",
+  "GPUAdapterInfo.isFallbackAdapter",
+  "GPU.requestAdapter",
+  "GPU.getPreferredCanvasFormat",
+  "GPU.wgslLanguageFeatures",
+  "GPUAdapter.requestDevice",
+  "GPUAdapter.features",
+  "GPUAdapter.limits",
+  "GPUAdapter.info",
+  "GPUDevice.destroy",
+  "GPUDevice.createBuffer",
+  "GPUDevice.createTexture",
+  "GPUDevice.createSampler",
+  "GPUDevice.createBindGroupLayout",
+  "GPUDevice.createPipelineLayout",
+  "GPUDevice.createBindGroup",
+  "GPUDevice.createShaderModule",
+  "GPUDevice.createComputePipeline",
+  "GPUDevice.createRenderPipeline",
+  "GPUDevice.createComputePipelineAsync",
+  "GPUDevice.createRenderPipelineAsync",
+  "GPUDevice.createCommandEncoder",
+  "GPUDevice.createRenderBundleEncoder",
+  "GPUDevice.createQuerySet",
+  "GPUDevice.pushErrorScope",
+  "GPUDevice.popErrorScope",
+  "GPUDevice.features",
+  "GPUDevice.limits",
+  "GPUDevice.adapterInfo",
+  "GPUDevice.queue",
+  "GPUDevice.lost",
+  "GPUDevice.label",
+  "GPUDevice.label =",
+  "GPUBuffer.mapAsync",
+  "GPUBuffer.getMappedRange",
+  "GPUBuffer.getMappedRange =bytes",
+  "GPUBuffer.unmap",
+  "GPUBuffer.destroy",
+  "GPUBuffer.size",
+  "GPUBuffer.usage",
+  "GPUBuffer.mapState",
+  "GPUBuffer.label",
+  "GPUBuffer.label =",
+  "GPUTexture.createView",
+  "GPUTexture.destroy",
+  "GPUTexture.width",
+  "GPUTexture.height",
+  "GPUTexture.depthOrArrayLayers",
+  "GPUTexture.mipLevelCount",
+  "GPUTexture.sampleCount",
+  "GPUTexture.dimension",
+  "GPUTexture.format",
+  "GPUTexture.usage",
+  "GPUTexture.textureBindingViewDimension",
+  "GPUTexture.label",
+  "GPUTexture.label =",
+  "GPUTextureView.label",
+  "GPUTextureView.label =",
+  "GPUExternalTexture.label",
+  "GPUExternalTexture.label =",
+  "GPUSampler.label",
+  "GPUSampler.label =",
+  "GPUBindGroupLayout.label",
+  "GPUBindGroupLayout.label =",
+  "GPUBindGroup.label",
+  "GPUBindGroup.label =",
+  "GPUPipelineLayout.label",
+  "GPUPipelineLayout.label =",
+  "GPUShaderModule.getCompilationInfo",
+  "GPUShaderModule.label",
+  "GPUShaderModule.label =",
+  "GPUCompilationMessage.message",
+  "GPUCompilationMessage.type",
+  "GPUCompilationMessage.lineNum",
+  "GPUCompilationMessage.linePos",
+  "GPUCompilationMessage.offset",
+  "GPUCompilationMessage.length",
+  "GPUCompilationInfo.messages",
+  "GPUPipelineError.reason",
+  "GPUComputePipeline.getBindGroupLayout",
+  "GPUComputePipeline.label",
+  "GPUComputePipeline.label =",
+  "GPURenderPipeline.getBindGroupLayout",
+  "GPURenderPipeline.label",
+  "GPURenderPipeline.label =",
+  "GPUCommandBuffer.label",
+  "GPUCommandBuffer.label =",
+  "GPUCommandEncoder.beginRenderPass",
+  "GPUCommandEncoder.beginComputePass",
+  "GPUCommandEncoder.copyBufferToBuffer",
+  "GPUCommandEncoder.copyBufferToBuffer",
+  "GPUCommandEncoder.copyBufferToTexture",
+  "GPUCommandEncoder.copyTextureToBuffer",
+  "GPUCommandEncoder.copyTextureToTexture",
+  "GPUCommandEncoder.clearBuffer",
+  "GPUCommandEncoder.resolveQuerySet",
+  "GPUCommandEncoder.finish",
+  "GPUCommandEncoder.pushDebugGroup",
+  "GPUCommandEncoder.popDebugGroup",
+  "GPUCommandEncoder.insertDebugMarker",
+  "GPUCommandEncoder.label",
+  "GPUCommandEncoder.label =",
+  "GPUComputePassEncoder.setPipeline",
+  "GPUComputePassEncoder.dispatchWorkgroups",
+  "GPUComputePassEncoder.dispatchWorkgroupsIndirect",
+  "GPUComputePassEncoder.end",
+  "GPUComputePassEncoder.pushDebugGroup",
+  "GPUComputePassEncoder.popDebugGroup",
+  "GPUComputePassEncoder.insertDebugMarker",
+  "GPUComputePassEncoder.setBindGroup",
+  "GPUComputePassEncoder.setBindGroup",
+  "GPUComputePassEncoder.setImmediates",
+  "GPUComputePassEncoder.label",
+  "GPUComputePassEncoder.label =",
+  "GPURenderPassEncoder.setViewport",
+  "GPURenderPassEncoder.setScissorRect",
+  "GPURenderPassEncoder.setBlendConstant",
+  "GPURenderPassEncoder.setStencilReference",
+  "GPURenderPassEncoder.beginOcclusionQuery",
+  "GPURenderPassEncoder.endOcclusionQuery",
+  "GPURenderPassEncoder.executeBundles",
+  "GPURenderPassEncoder.end",
+  "GPURenderPassEncoder.pushDebugGroup",
+  "GPURenderPassEncoder.popDebugGroup",
+  "GPURenderPassEncoder.insertDebugMarker",
+  "GPURenderPassEncoder.setBindGroup",
+  "GPURenderPassEncoder.setBindGroup",
+  "GPURenderPassEncoder.setImmediates",
+  "GPURenderPassEncoder.setPipeline",
+  "GPURenderPassEncoder.setIndexBuffer",
+  "GPURenderPassEncoder.setVertexBuffer",
+  "GPURenderPassEncoder.draw",
+  "GPURenderPassEncoder.drawIndexed",
+  "GPURenderPassEncoder.drawIndirect",
+  "GPURenderPassEncoder.drawIndexedIndirect",
+  "GPURenderPassEncoder.label",
+  "GPURenderPassEncoder.label =",
+  "GPURenderBundle.label",
+  "GPURenderBundle.label =",
+  "GPURenderBundleEncoder.finish",
+  "GPURenderBundleEncoder.pushDebugGroup",
+  "GPURenderBundleEncoder.popDebugGroup",
+  "GPURenderBundleEncoder.insertDebugMarker",
+  "GPURenderBundleEncoder.setBindGroup",
+  "GPURenderBundleEncoder.setBindGroup",
+  "GPURenderBundleEncoder.setImmediates",
+  "GPURenderBundleEncoder.setPipeline",
+  "GPURenderBundleEncoder.setIndexBuffer",
+  "GPURenderBundleEncoder.setVertexBuffer",
+  "GPURenderBundleEncoder.draw",
+  "GPURenderBundleEncoder.drawIndexed",
+  "GPURenderBundleEncoder.drawIndirect",
+  "GPURenderBundleEncoder.drawIndexedIndirect",
+  "GPURenderBundleEncoder.label",
+  "GPURenderBundleEncoder.label =",
+  "GPUQueue.submit",
+  "GPUQueue.onSubmittedWorkDone",
+  "GPUQueue.writeBuffer",
+  "GPUQueue.writeTexture",
+  "GPUQueue.label",
+  "GPUQueue.label =",
+  "GPUQuerySet.destroy",
+  "GPUQuerySet.type",
+  "GPUQuerySet.count",
+  "GPUQuerySet.label",
+  "GPUQuerySet.label =",
+  "GPUCanvasContext.configure",
+  "GPUCanvasContext.unconfigure",
+  "GPUCanvasContext.getConfiguration",
+  "GPUCanvasContext.getCurrentTexture",
+  "GPUDeviceLostInfo.reason",
+  "GPUDeviceLostInfo.message",
+  "GPUError.message",
+  "GPUUncapturedErrorEvent.error",
+  "OffscreenCanvas.width",
+  "OffscreenCanvas.width =",
+  "OffscreenCanvas.height",
+  "OffscreenCanvas.height =",
+  "release",
 ];

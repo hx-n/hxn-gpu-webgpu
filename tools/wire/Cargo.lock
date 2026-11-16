@@ -78,10 +78,30 @@ dependencies = [
 [[package]]
 name = "x_idl"
 version = "0.1.0"
-source = "git+https://github.com/rayzor-blade/x-idl.git?rev=753610fd220dcfb5cce358e9418eadc48cb4562d#753610fd220dcfb5cce358e9418eadc48cb4562d"
+source = "git+https://github.com/rayzor-blade/x-idl.git?rev=f4bd4ef1f2e1af6a6e89ef287bfb0b11549dc371#f4bd4ef1f2e1af6a6e89ef287bfb0b11549dc371"
 dependencies = [
  "proc-macro2",
  "quote",
  "syn",
  "weedle2",
 ]
+
+[[patch.unused]]
+name = "hxn"
+version = "0.3.5"
+
+[[patch.unused]]
+name = "hxn-abi"
+version = "0.3.5"
+
+[[patch.unused]]
+name = "hxn-c"
+version = "0.3.5"
+
+[[patch.unused]]
+name = "hxn-future"
+version = "0.3.5"
+
+[[patch.unused]]
+name = "hxn-hl"
+version = "0.3.5"

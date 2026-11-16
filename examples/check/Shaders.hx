@@ -1,5 +1,5 @@
 /** Each value becomes three times itself plus one. **/
-class Tripled implements gpu.webgpu.Shader {
+class Tripled implements hxn.gpu.webgpu.Shader {
 	static var SRC = {
 		@param var data : RWBuffer<Int>;
 
@@ -12,7 +12,7 @@ class Tripled implements gpu.webgpu.Shader {
 }
 
 /** Fills what it covers with `tint`. **/
-class Tinted implements gpu.webgpu.Shader {
+class Tinted implements hxn.gpu.webgpu.Shader {
 	static var SRC = {
 		@input var input : { position : Vec2 };
 		var output : { position : Vec4, color : Vec4 };
@@ -29,7 +29,7 @@ class Tinted implements gpu.webgpu.Shader {
 }
 
 /** Fills what it covers with `image`, sampled at the vertices' uv. **/
-class Textured implements gpu.webgpu.Shader {
+class Textured implements hxn.gpu.webgpu.Shader {
 	static var SRC = {
 		@input var input : { position : Vec2, uv : Vec2 };
 		var output : { position : Vec4, color : Vec4 };

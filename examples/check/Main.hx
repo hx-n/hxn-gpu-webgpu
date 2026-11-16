@@ -1,5 +1,5 @@
-import gpu.webgpu.*;
-import gpu.webgpu.Shaders as WebGPUShaders;
+import hxn.gpu.webgpu.*;
+import hxn.gpu.webgpu.Shaders as WebGPUShaders;
 import haxe.io.Bytes;
 import Shaders;
 

@@ -27,12 +27,12 @@ the WGSL.
 return an `hxn.Future`, which resolves when the browser's promise does:
 
 ```haxe
-import gpu.webgpu.*;
+import hxn.gpu.webgpu.*;
 
 Instance.create().requestAdapter().then(adapter -> {
 	adapter.requestDevice().then(device -> {
 		var module = device.createShaderModule(Tripled.WGSL);             // an hxnsl shader
-		var layouts = gpu.webgpu.Shaders.bindGroupLayouts(device, Tripled.LAYOUT);
+		var layouts = hxn.gpu.webgpu.Shaders.bindGroupLayouts(device, Tripled.LAYOUT);
 		var pipeline = device.createComputePipeline(module, "compute_main", device.createPipelineLayout(layouts), []);
 		var data = device.createBufferWith(input, BufferUsage.Storage | BufferUsage.CopySrc);
 		var entries = BindGroupEntries.create();
@@ -104,7 +104,7 @@ WebGPU runs in a browser agent of its own, a separate Worker.
 
 ## Classes
 
-All in the package `gpu.webgpu`:
+All in the package `hxn.gpu.webgpu`:
 
 | Class | |
 |---|---|
@@ -125,10 +125,10 @@ in the browser console.
 
 ## Shaders from hxnsl
 
-A shader for this driver implements `gpu.webgpu.Shader`, which extends
+A shader for this driver implements `hxn.gpu.webgpu.Shader`, which extends
 `hxnsl.Shader` and generates only `WGSL` and `LAYOUT`.
 
-- `gpu.webgpu.Shaders.bindGroupLayouts(device, Shader.LAYOUT)` creates the
+- `hxn.gpu.webgpu.Shaders.bindGroupLayouts(device, Shader.LAYOUT)` creates the
   bind group layouts.
 - Entry points are `vertex_main`, `fragment_main` and `compute_main`.
 - A texture's sampler is at the texture's binding plus one.
