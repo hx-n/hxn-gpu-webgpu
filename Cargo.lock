@@ -45,7 +45,7 @@ dependencies = [
 
 [[package]]
 name = "hxn-gpu-webgpu"
-version = "0.3.2"
+version = "0.3.3"
 dependencies = [
  "cc",
  "hxn",
