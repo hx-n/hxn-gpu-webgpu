@@ -3,26 +3,29 @@
 //! asynchronous calls (`requestAdapter`, `requestDevice`, `mapAsync`, `onSubmittedWorkDone`)
 //! return hxn futures, resolved when the browser's promises resolve.
 //!
-//! Two backends, by how the program reaches the page: under Emscripten, webgpu.h as the
-//! emdawnwebgpu port implements it; as a threaded Ash wasm library, a wire of commands in shared
-//! memory, served by a browser agent the web page starts through `ash_host_agent`. This file is the API
+//! Two backends, by how the program reaches the page: without threads, webgpu.h as Emscripten's
+//! emdawnwebgpu port implements it; with threads, under Ash or Emscripten, a wire of commands in
+//! shared memory, served by a browser agent the web page starts through `ash_host_agent`. This file is the API
 //! both share, and the one hxn generates the Haxe classes from.
 
 #![cfg(any(
     target_os = "emscripten",
     all(target_os = "wasi", target_feature = "atomics")
 ))]
-// The Ash backend's wire waits and notifies with wasm's atomics.
-#![cfg_attr(target_os = "wasi", feature(stdarch_wasm_atomic_wait))]
+// The browser agent backend's wire waits and notifies with wasm's atomics.
+#![cfg_attr(target_feature = "atomics", feature(stdarch_wasm_atomic_wait))]
 
-#[cfg(target_os = "emscripten")]
+// Without threads, Emscripten's webgpu.h on the page's thread.
+#[cfg(all(target_os = "emscripten", not(target_feature = "atomics")))]
 mod ffi;
 
-#[cfg(target_os = "emscripten")]
+#[cfg(all(target_os = "emscripten", not(target_feature = "atomics")))]
 #[path = "emscripten.rs"]
 mod backend;
 
-#[cfg(target_os = "wasi")]
+// With threads, under Ash or Emscripten, a browser agent in a Worker of its own, so the
+// program's thread can wait for what the browser settles.
+#[cfg(target_feature = "atomics")]
 #[path = "agent/mod.rs"]
 mod backend;
 
@@ -233,7 +236,7 @@ impl Instance {
 
     /// Takes the web page's canvas for this program's WebGPU, which `createCanvasSurface`
     /// then renders into. It fails when the page has no canvas or another browser agent holds
-    /// it. Under Emscripten the program holds the canvas, and it settles at once.
+    /// it. Without threads the program holds the canvas, and it settles at once.
     pub fn claim_canvas(&self) -> Future<()> {
         self.inner.claim_canvas()
     }

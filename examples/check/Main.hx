@@ -26,6 +26,17 @@ class Main {
 			Sys.println('no WebGPU: ${e.message}');
 			return;
 		}
+		#if hxn_threads
+		// With threads the browser agent settles WebGPU's promises in a Worker of its own, so
+		// the program's thread can wait for one.
+		try {
+			instance.requestAdapter().await().close();
+			Sys.println("await: an adapter");
+		} catch (e:haxe.Exception) {
+			Sys.println('no WebGPU adapter: ${e.message}');
+			return;
+		}
+		#end
 		instance.requestAdapter().then(adapter -> {
 			adapter.requestDevice().then(device -> {
 				compute(device, () -> render(device, () -> textured(device, () -> canvas(instance, adapter, device, () -> {
@@ -131,7 +142,7 @@ class Main {
 
 	/** A frame of the web page's canvas cleared to red, then copied out in a later submission and shown. **/
 	static function canvas(instance:Instance, adapter:Adapter, device:Device, next:() -> Void) {
-		// Under Ash the canvas is the browser agent's once claimed; under Emscripten at once.
+		// With threads the canvas is the browser agent's once claimed; without, Emscripten's at once.
 		instance.claimCanvas().then(_ -> canvasFrame(instance, adapter, device, next), failed);
 	}
 

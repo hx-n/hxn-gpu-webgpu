@@ -1,11 +1,11 @@
-//! The backend for a threaded Ash wasm library. Each call is encoded onto the wire (`wire.rs`,
-//! generated from WebGPU's IDL by x-idl) into one batch, which the browser agent runs on
-//! `navigator.gpu` in a Worker of its own; the browser agent is `page/gpu_webgpu.mjs`, which the web page
-//! starts when `Instance.create` asks for it through `ash_host_agent`. Objects are kept by the
-//! browser agent under handles this library picks, so making one needs no round trip; a batch goes out
-//! when a call needs an answer, and on submit. A promise's answer is a reply record in the
-//! program's shared memory, which Ash's watch on the mailbox settles into an hxn future on
-//! the program's thread.
+//! The backend for a threaded wasm library, under Ash or Emscripten. Each call is encoded onto
+//! the wire (`wire.rs`, generated from WebGPU's IDL by x-idl) into one batch, which the browser
+//! agent runs on `navigator.gpu` in a Worker of its own; the browser agent is
+//! `page/gpu_webgpu.mjs`, which the web page starts when `Instance.create` asks for it through
+//! `ash_host_agent`. Objects are kept by the browser agent under handles this library picks, so
+//! making one needs no round trip; a batch goes out when a call needs an answer, and on submit.
+//! A promise's answer is a reply record in the program's shared memory, which a thread of this
+//! library settles into an hxn future (`host.rs`), so the program's thread can wait for it.
 
 // Generated for all of WebGPU's IDL, of which this backend uses a part.
 #[allow(dead_code, clippy::all)]
@@ -36,16 +36,17 @@ const AGENT: &str = "gpu_webgpu";
 
 static MAILBOX: Mailbox = Mailbox::new();
 
+mod host;
+#[cfg(target_os = "emscripten")]
+use host::ash_host_agent;
+use host::ash_host_watch;
+
+#[cfg(target_os = "wasi")]
 unsafe extern "C" {
     fn ash_host_agent(name: *const u8, name_len: u32, address: u32) -> i32;
-    fn ash_host_watch(
-        word: *const u32,
-        handler: unsafe extern "C" fn(*mut std::ffi::c_void),
-        context: *mut std::ffi::c_void,
-    ) -> *const u32;
 }
 
-/// Run by Ash on the program's thread whenever the browser agent has settled another reply.
+/// Run on the settling thread whenever the browser agent has settled another reply.
 unsafe extern "C" fn settled(_: *mut std::ffi::c_void) {
     settle_answered();
 }
@@ -170,7 +171,7 @@ impl State {
     }
 }
 
-/// Settles every promise the browser agent has answered. Run on the program's thread by Ash's watch.
+/// Settles every promise the browser agent has answered.
 fn settle_answered() {
     let mut s = state();
     let mut i = 0;
@@ -248,14 +249,14 @@ fn settle_answered() {
     }
 }
 
-/// Starts the browser agent, and has Ash settle what it answers, once.
+/// Starts the browser agent, and the thread that settles what it answers, once.
 fn start() -> Result<(), String> {
     static STARTED: Once = Once::new();
     static AGENT_RUNNING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
     STARTED.call_once(|| {
-        // Watched before any request is sent, so no reply is missed. Ash runs the handler on
-        // the program's thread while it waits; the browser agent adds one to the word Ash
-        // answers, and notifies it, after settling a reply, which wakes that wait.
+        // Watched before any request is sent, so no reply is missed. The browser agent adds one
+        // to the word this returns, and notifies it, after settling a reply, which wakes the
+        // settling thread.
         let wake = unsafe {
             ash_host_watch(
                 MAILBOX.settled.as_ptr().cast_const().cast(),
@@ -277,7 +278,7 @@ fn start() -> Result<(), String> {
         Ok(())
     } else {
         Err(format!(
-            "no web page started the WebGPU browser agent: run the program in the web page Ash writes, served by `ash serve`, with {AGENT}.mjs beside it"
+            "no web page started the WebGPU browser agent: run the program in the web page Ash or Emscripten writes, with {AGENT}.mjs beside it"
         ))
     }
 }

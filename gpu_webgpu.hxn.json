@@ -128,7 +128,7 @@
         },
         {
           "name": "claim_canvas",
-          "docs": "Takes the web page's canvas for this program's WebGPU, which `createCanvasSurface`\nthen renders into. It fails when the page has no canvas or another browser agent holds\nit. Under Emscripten the program holds the canvas, and it settles at once.",
+          "docs": "Takes the web page's canvas for this program's WebGPU, which `createCanvasSurface`\nthen renders into. It fails when the page has no canvas or another browser agent holds\nit. Without threads the program holds the canvas, and it settles at once.",
           "kind": "method",
           "params": [],
           "returns": "future<void>",

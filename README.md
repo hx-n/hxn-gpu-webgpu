@@ -97,17 +97,18 @@ files; compiling copies them next to `main.hl`, Ash links the library into
 memory, so the web page must be served with cross-origin isolation headers
 (COOP/COEP), which `ash serve` sets.
 
-Under Ash, WebGPU runs in a browser agent, a Worker the web page starts, which
-takes the page's canvas only when the program calls `instance.claimCanvas()`.
+In a threaded build, under Ash or hxcpp, WebGPU runs in a browser agent, a
+Worker the web page starts, which takes the page's canvas only when the
+program calls `instance.claimCanvas()`.
 Claim it before `createCanvasSurface`. A page can carry other browser agents,
 such as hxn-gpu-webgl2's, and the canvas goes to the first that claims it. An
 agent's command that throws ends the web page with the command's name and the
 error.
 
-Under hxcpp, with or without threads, deliver a future with `then`, not
-`await`. The browser resolves WebGPU's promises on the thread the program
-runs on, and only while that thread is not blocked. Under Ash, `await` works:
-WebGPU runs in a browser agent of its own, a separate Worker.
+With threads, `await` works: the browser agent settles WebGPU's promises in
+its own Worker while the program's thread waits. Without threads, deliver a
+future with `then`, not `await`: the browser resolves WebGPU's promises on
+the thread the program runs on, and only while that thread is not blocked.
 
 ## Classes
 

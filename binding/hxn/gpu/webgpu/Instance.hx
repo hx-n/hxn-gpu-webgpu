@@ -23,7 +23,7 @@ class Instance {
 	/**
 		Takes the web page's canvas for this program's WebGPU, which `createCanvasSurface`
 		then renders into. It fails when the page has no canvas or another browser agent holds
-		it. Under Emscripten the program holds the canvas, and it settles at once.
+		it. Without threads the program holds the canvas, and it settles at once.
 	**/
 	public function claimCanvas():hxn.Future<hxn.Unit>
 		return HxnGpuWebgpuFuture.ofUnit(HxnGpuWebgpuNative.instance_claim_canvas(hxnRaw));
