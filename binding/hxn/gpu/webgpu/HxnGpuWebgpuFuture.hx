@@ -6,14 +6,14 @@ package hxn.gpu.webgpu;
 	public static function ofAdapter(hxnRaw:hxn.Handle):hxn.Future<Adapter>
 		return new hxn.Future(HxnGpuWebgpuInbox.inbox, () -> HxnGpuWebgpuNative.future_watch(hxnRaw), () -> HxnGpuWebgpuNative.future_state(hxnRaw), limit -> HxnGpuWebgpuNative.future_wait(hxnRaw, limit), () -> Adapter.hxnAdopt(HxnGpuWebgpuNative.future_take_adapter(hxnRaw)));
 
-	public static function ofDevice(hxnRaw:hxn.Handle):hxn.Future<Device>
-		return new hxn.Future(HxnGpuWebgpuInbox.inbox, () -> HxnGpuWebgpuNative.future_watch(hxnRaw), () -> HxnGpuWebgpuNative.future_state(hxnRaw), limit -> HxnGpuWebgpuNative.future_wait(hxnRaw, limit), () -> Device.hxnAdopt(HxnGpuWebgpuNative.future_take_device(hxnRaw)));
-
 	public static function ofUnit(hxnRaw:hxn.Handle):hxn.Future<hxn.Unit>
 		return new hxn.Future(HxnGpuWebgpuInbox.inbox, () -> HxnGpuWebgpuNative.future_watch(hxnRaw), () -> HxnGpuWebgpuNative.future_state(hxnRaw), limit -> HxnGpuWebgpuNative.future_wait(hxnRaw, limit), () -> {
 			HxnGpuWebgpuNative.future_take_unit(hxnRaw);
 			hxn.Unit.Nothing;
 		});
+
+	public static function ofDevice(hxnRaw:hxn.Handle):hxn.Future<Device>
+		return new hxn.Future(HxnGpuWebgpuInbox.inbox, () -> HxnGpuWebgpuNative.future_watch(hxnRaw), () -> HxnGpuWebgpuNative.future_state(hxnRaw), limit -> HxnGpuWebgpuNative.future_wait(hxnRaw, limit), () -> Device.hxnAdopt(HxnGpuWebgpuNative.future_take_device(hxnRaw)));
 
 	public static function ofBytes(hxnRaw:hxn.Handle):hxn.Future<haxe.io.Bytes>
 		return new hxn.Future(HxnGpuWebgpuInbox.inbox, () -> HxnGpuWebgpuNative.future_watch(hxnRaw), () -> HxnGpuWebgpuNative.future_state(hxnRaw), limit -> HxnGpuWebgpuNative.future_wait(hxnRaw, limit), () -> HxnGpuWebgpuNative.future_take_bytes(hxnRaw));

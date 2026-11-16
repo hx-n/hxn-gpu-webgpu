@@ -20,6 +20,14 @@ class Instance {
 	public function requestAdapter():hxn.Future<Adapter>
 		return HxnGpuWebgpuFuture.ofAdapter(HxnGpuWebgpuNative.instance_request_adapter(hxnRaw));
 
+	/**
+		Takes the web page's canvas for this program's WebGPU, which `createCanvasSurface`
+		then renders into. It fails when the page has no canvas or another browser agent holds
+		it. Under Emscripten the program holds the canvas, and it settles at once.
+	**/
+	public function claimCanvas():hxn.Future<hxn.Unit>
+		return HxnGpuWebgpuFuture.ofUnit(HxnGpuWebgpuNative.instance_claim_canvas(hxnRaw));
+
 	/** The web page's canvas, as a surface to render frames into. **/
 	public function createCanvasSurface():Surface
 		return Surface.hxnAdopt(HxnGpuWebgpuNative.instance_create_canvas_surface(hxnRaw));

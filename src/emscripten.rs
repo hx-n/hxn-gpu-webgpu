@@ -177,6 +177,12 @@ unsafe extern "C" fn adapter_requested(
 }
 
 impl Instance {
+    pub fn claim_canvas(&self) -> hxn_future::Future<()> {
+        let (completer, future) = hxn_future::pending();
+        completer.resolve(());
+        future
+    }
+
     pub fn create() -> Result<Instance, String> {
         let raw = unsafe { wgpuCreateInstance(std::ptr::null()) };
         if raw.is_null() {

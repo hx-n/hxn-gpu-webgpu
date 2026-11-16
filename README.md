@@ -83,7 +83,7 @@ haxe -lib hxn-gpu-webgpu -lib hxnsl -main Main -cpp out -D emscripten -D hxn_thr
 emrun out/Main.html
 ```
 
-For Ash, with [Ash](https://github.com/rayzor-blade/ash) 0.1.19 or later:
+For Ash, with [Ash](https://github.com/rayzor-blade/ash) 0.1.20 or later:
 
 ```
 haxe -lib hxn-gpu-webgpu -lib hxnsl -main Main -hl out/main.hl -D wasm -D hxn_threads
@@ -97,6 +97,13 @@ files; compiling copies them next to `main.hl`, Ash links the library into
 memory, so the web page must be served with cross-origin isolation headers
 (COOP/COEP), which `ash serve` sets.
 
+Under Ash, WebGPU runs in a browser agent, a Worker the web page starts, which
+takes the page's canvas only when the program calls `instance.claimCanvas()`.
+Claim it before `createCanvasSurface`. A page can carry other browser agents,
+such as hxn-gpu-webgl2's, and the canvas goes to the first that claims it. An
+agent's command that throws ends the web page with the command's name and the
+error.
+
 Under hxcpp, with or without threads, deliver a future with `then`, not
 `await`. The browser resolves WebGPU's promises on the thread the program
 runs on, and only while that thread is not blocked. Under Ash, `await` works:
@@ -108,8 +115,8 @@ All in the package `hxn.gpu.webgpu`:
 
 | Class | |
 |---|---|
-| `Instance` | `create()`, `requestAdapter()` and `createCanvasSurface()`. |
-| `Surface` | The web page's canvas: `preferredFormat(adapter)`, `configure(device, format, usage, width, height)` and `currentTexture()`. A frame is shown when the program returns to the browser's event loop. |
+| `Instance` | `create()`, `requestAdapter()`, `claimCanvas()` and `createCanvasSurface()`. |
+| `Surface` | The web page's canvas, once `claimCanvas()` has settled: `preferredFormat(adapter)`, `configure(device, format, usage, width, height)` and `currentTexture()`. A frame is shown when the program returns to the browser's event loop. |
 | `Adapter` | `info()` and `requestDevice()`. |
 | `Device` | Buffers, textures, samplers, shader modules, bind group layouts, pipeline layouts, pipelines, bind groups and command encoders; `submit`, `writeBuffer`, `writeTexture` and `completed`. |
 | `Buffer` | `read(offset, length)`, a future of the bytes, through a mapping. |

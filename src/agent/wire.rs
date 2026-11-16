@@ -6063,13 +6063,20 @@ impl Encoder {
         value.encode(self);
         self.end(at);
     }
+    /// `GPUAgent.claimCanvas`.
+    pub fn gpu_agent_claim_canvas(&mut self, this: Handle, reply: u32) {
+        let at = self.begin(221);
+        this.encode(self);
+        self.u32(reply);
+        self.end(at);
+    }
     /// Forget the object kept under `this`.
     pub fn release(&mut self, this: Handle) {
-        let at = self.begin(221);
+        let at = self.begin(222);
         this.encode(self);
         self.end(at);
     }
 }
 
 /// The number of operations the wire carries.
-pub const OPS: u32 = 222;
+pub const OPS: u32 = 223;

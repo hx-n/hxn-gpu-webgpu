@@ -42,7 +42,7 @@ runs:
           macOS) archive=ash-macos-aarch64.tar.gz ;;
         esac
         mkdir -p "$RUNNER_TEMP/ash"
-        (cd "$RUNNER_TEMP/ash" && curl -fsSL "https://github.com/rayzor-blade/ash/releases/download/v0.1.19/$archive" | tar -xz)
+        (cd "$RUNNER_TEMP/ash" && curl -fsSL "https://github.com/rayzor-blade/ash/releases/download/v0.1.20/$archive" | tar -xz)
         echo "$RUNNER_TEMP/ash" >> "$GITHUB_PATH"
     # The command of the hxn release the crate depends on, since the two must
     # match.

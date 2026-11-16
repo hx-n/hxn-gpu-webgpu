@@ -2916,7 +2916,15 @@ export const OPS = [
     const a0 = r.u64();
     (self.height = a0);
   },
-  // 221: release
+  // 221: GPUAgent.claimCanvas
+  (wire, r) => {
+    const self = wire.get(r.u32());
+    const reply = r.u32();
+    let p;
+    try { p = self.claimCanvas(); } catch (e) { wire.reply(reply, 2, message(e)); return; }
+    p.then((v) => { wire.reply(reply, 1, null); }, (e) => wire.reply(reply, 2, message(e)));
+  },
+  // 222: release
   (wire, r) => {
     wire.objects.delete(r.u32());
   },
@@ -3144,5 +3152,6 @@ export const NAMES = [
   "OffscreenCanvas.width =",
   "OffscreenCanvas.height",
   "OffscreenCanvas.height =",
+  "GPUAgent.claimCanvas",
   "release",
 ];

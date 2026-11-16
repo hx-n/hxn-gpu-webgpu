@@ -24,10 +24,12 @@ use crate::{
 
 /// `navigator.gpu`, as the browser agent keeps it.
 const GPU: Handle = Handle(1);
+/// The browser agent's own calls (tools/wire/agent.idl).
+const AGENT_CALLS: Handle = Handle(4);
 
-/// The handles the browser agent holds before this library makes any: the GPU, and the page's canvas
-/// context and element.
-const ROOTS: u32 = 3;
+/// The handles the browser agent holds before this library makes any: the GPU, the page's canvas
+/// context and element once claimed, and the agent's own calls.
+const ROOTS: u32 = 4;
 
 /// The name of the browser agent, and of its shim beside the web page: `gpu_webgpu.mjs`.
 const AGENT: &str = "gpu_webgpu";
@@ -419,6 +421,15 @@ impl Instance {
     pub fn create() -> Result<Instance, String> {
         start()?;
         Ok(Instance)
+    }
+
+    pub fn claim_canvas(&self) -> Future<()> {
+        let (completer, future) = hxn_future::pending();
+        let mut s = state();
+        let answer = Answer::new(1024);
+        s.commands.gpu_agent_claim_canvas(AGENT_CALLS, answer.at());
+        await_answer(s, answer, Settle::Unit(completer));
+        future
     }
 
     pub fn create_canvas_surface(&self) -> Result<Surface, String> {

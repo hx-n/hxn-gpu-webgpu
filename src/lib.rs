@@ -231,6 +231,13 @@ impl Instance {
         self.inner.request_adapter()
     }
 
+    /// Takes the web page's canvas for this program's WebGPU, which `createCanvasSurface`
+    /// then renders into. It fails when the page has no canvas or another browser agent holds
+    /// it. Under Emscripten the program holds the canvas, and it settles at once.
+    pub fn claim_canvas(&self) -> Future<()> {
+        self.inner.claim_canvas()
+    }
+
     /// The web page's canvas, as a surface to render frames into.
     pub fn create_canvas_surface(&self) -> Result<Surface, String> {
         Ok(Surface {

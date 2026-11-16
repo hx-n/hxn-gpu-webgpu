@@ -1,6 +1,6 @@
 [package]
 name = "hxn-gpu-webgpu"
-version = "0.2.0"
+version = "0.3.0"
 edition = "2024"
 description = "WebGPU for Haxe in the browser, on hxcpp and Ash compiled to wasm: devices, buffers, textures, bind groups, pipelines and command encoders"
 repository = "https://github.com/hx-n/hxn-gpu-webgpu"
@@ -15,7 +15,7 @@ name = "hxn_gpu_webgpu"
 library = "gpu_webgpu"
 haxelib = "hxn-gpu-webgpu"
 contributors = ["darmie", "rayzor"]
-releasenote = "Moves to the hxn.gpu.webgpu package, on hxn 0.3.5. Under Ash, requestAdapter fails when the browser has no adapter, and a command that throws or a browser agent that fails ends the web page with the reason."
+releasenote = "Instance.claimCanvas: under Ash the browser agent takes the web page's canvas when the program claims it, not when it starts, so the page can carry other browser agents, such as WebGL2's."
 haxe = "examples/check"
 haxe-flags = ["-lib", "hxnsl"]
 init = ["hxn.gpu.webgpu.Shaders.register()"]

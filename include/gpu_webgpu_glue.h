@@ -33,6 +33,13 @@ inline void *instance_request_adapter(void *self) {
 	return out;
 }
 
+inline void *instance_claim_canvas(void *self) {
+	hxn_handle *out = 0;
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_instance_claim_canvas((hxn_handle *)self, &out, &err), err);
+	return out;
+}
+
 inline void *instance_create_canvas_surface(void *self) {
 	hxn_handle *out = 0;
 	hxn_buf err = HXN_BUF_EMPTY;
@@ -430,18 +437,18 @@ inline void *future_take_adapter(void *self) {
 	return out;
 }
 
-inline void *future_take_device(void *self) {
-	hxn_handle *out = 0;
-	hxn_buf err = HXN_BUF_EMPTY;
-	hxn::check(hxn_gpu_webgpu_future_take_device((hxn_handle *)self, &out, &err), err);
-	return out;
-}
-
 inline bool future_take_unit(void *self) {
 	int out = 0;
 	hxn_buf err = HXN_BUF_EMPTY;
 	hxn::check(hxn_gpu_webgpu_future_take_unit((hxn_handle *)self, &out, &err), err);
 	return out != 0;
+}
+
+inline void *future_take_device(void *self) {
+	hxn_handle *out = 0;
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_future_take_device((hxn_handle *)self, &out, &err), err);
+	return out;
 }
 
 inline Array<unsigned char> future_take_bytes(void *self) {

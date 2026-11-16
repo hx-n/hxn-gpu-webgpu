@@ -33,6 +33,7 @@ package hxn.gpu.webgpu;
 	static function memory_wanted():Bool;
 	static function instance_create():hxn.Handle;
 	static function instance_request_adapter(self:hxn.Handle):hxn.Handle;
+	static function instance_claim_canvas(self:hxn.Handle):hxn.Handle;
 	static function instance_create_canvas_surface(self:hxn.Handle):hxn.Handle;
 	static function instance_drop(self:hxn.Handle):Void;
 	static function surface_preferred_format(self:hxn.Handle, adapter:hxn.Handle):Int;
@@ -99,7 +100,7 @@ package hxn.gpu.webgpu;
 	static function future_wait(self:hxn.Handle, milliseconds:Int):Int;
 	static function future_watch(self:hxn.Handle):Int;
 	static function future_take_adapter(self:hxn.Handle):hxn.Handle;
-	static function future_take_device(self:hxn.Handle):hxn.Handle;
 	static function future_take_unit(self:hxn.Handle):Bool;
+	static function future_take_device(self:hxn.Handle):hxn.Handle;
 	static function future_take_bytes(self:hxn.Handle):haxe.io.Bytes;
 }

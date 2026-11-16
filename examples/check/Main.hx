@@ -131,6 +131,11 @@ class Main {
 
 	/** A frame of the web page's canvas cleared to red, copied out before it is shown. **/
 	static function canvas(instance:Instance, adapter:Adapter, device:Device, next:() -> Void) {
+		// Under Ash the canvas is the browser agent's once claimed; under Emscripten at once.
+		instance.claimCanvas().then(_ -> canvasFrame(instance, adapter, device, next), failed);
+	}
+
+	static function canvasFrame(instance:Instance, adapter:Adapter, device:Device, next:() -> Void) {
 		var surface = instance.createCanvasSurface();
 		var format = surface.preferredFormat(adapter);
 		surface.configure(device, format, TextureUsage.RenderAttachment | TextureUsage.CopySrc, 64, 64);

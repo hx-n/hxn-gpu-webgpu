@@ -11,6 +11,7 @@ extern "C" {
 /* Instance */
 hxn_status hxn_gpu_webgpu_instance_create(hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_instance_request_adapter(hxn_handle *self, hxn_handle **out, hxn_buf *err);
+hxn_status hxn_gpu_webgpu_instance_claim_canvas(hxn_handle *self, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_instance_create_canvas_surface(hxn_handle *self, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_instance_drop(hxn_handle *self, hxn_buf *err);
 
@@ -115,8 +116,8 @@ hxn_status hxn_gpu_webgpu_future_state(hxn_handle *self, int32_t *out, hxn_buf *
 hxn_status hxn_gpu_webgpu_future_wait(hxn_handle *self, int32_t milliseconds, int32_t *out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_future_watch(hxn_handle *self, int32_t *out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_future_take_adapter(hxn_handle *self, hxn_handle **out, hxn_buf *err);
-hxn_status hxn_gpu_webgpu_future_take_device(hxn_handle *self, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_future_take_unit(hxn_handle *self, int32_t *out, hxn_buf *err);
+hxn_status hxn_gpu_webgpu_future_take_device(hxn_handle *self, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_future_take_bytes(hxn_handle *self, hxn_buf *out, hxn_buf *err);
 
 /* The bytes the library's values hold that the host's collector cannot see,
