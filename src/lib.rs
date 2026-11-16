@@ -246,8 +246,7 @@ impl Instance {
     }
 }
 
-/// The web page's canvas. A frame rendered into its `currentTexture` is shown when the program
-/// returns to the browser's event loop.
+/// The web page's canvas. Render each frame into `currentTexture`, then show it with `present`.
 #[hxn::interface]
 pub struct Surface {
     inner: backend::Surface,
@@ -274,11 +273,16 @@ impl Surface {
             .configure(&device.inner, format, usage, width, height)
     }
 
-    /// This frame's texture.
+    /// This frame's texture, the same one until `present`.
     pub fn current_texture(&self) -> Result<Texture, String> {
         Ok(Texture {
             inner: self.inner.current_texture()?,
         })
+    }
+
+    /// Shows the frame rendered into `currentTexture`, after the work submitted before.
+    pub fn present(&self) {
+        self.inner.present()
     }
 }
 

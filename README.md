@@ -116,7 +116,7 @@ All in the package `hxn.gpu.webgpu`:
 | Class | |
 |---|---|
 | `Instance` | `create()`, `requestAdapter()`, `claimCanvas()` and `createCanvasSurface()`. |
-| `Surface` | The web page's canvas, once `claimCanvas()` has settled: `preferredFormat(adapter)`, `configure(device, format, usage, width, height)` and `currentTexture()`. A frame is shown when the program returns to the browser's event loop. |
+| `Surface` | The web page's canvas, once `claimCanvas()` has settled: `preferredFormat(adapter)`, `configure(device, format, usage, width, height)`, `currentTexture()` and `present()`. The frame's texture stays the same until `present()` shows it. |
 | `Adapter` | `info()` and `requestDevice()`. |
 | `Device` | Buffers, textures, samplers, shader modules, bind group layouts, pipeline layouts, pipelines, bind groups and command encoders; `submit`, `writeBuffer`, `writeTexture` and `completed`. |
 | `Buffer` | `read(offset, length)`, a future of the bytes, through a mapping. |

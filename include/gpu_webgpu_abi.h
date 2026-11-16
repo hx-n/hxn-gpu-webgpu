@@ -19,6 +19,7 @@ hxn_status hxn_gpu_webgpu_instance_drop(hxn_handle *self, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_surface_preferred_format(hxn_handle *self, hxn_handle *adapter, int32_t *out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_surface_configure(hxn_handle *self, hxn_handle *device, int32_t format, int32_t usage, int32_t width, int32_t height, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_surface_current_texture(hxn_handle *self, hxn_handle **out, hxn_buf *err);
+hxn_status hxn_gpu_webgpu_surface_present(hxn_handle *self, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_surface_drop(hxn_handle *self, hxn_buf *err);
 
 /* Adapter */

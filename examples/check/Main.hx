@@ -129,7 +129,7 @@ class Main {
 		});
 	}
 
-	/** A frame of the web page's canvas cleared to red, copied out before it is shown. **/
+	/** A frame of the web page's canvas cleared to red, then copied out in a later submission and shown. **/
 	static function canvas(instance:Instance, adapter:Adapter, device:Device, next:() -> Void) {
 		// Under Ash the canvas is the browser agent's once claimed; under Emscripten at once.
 		instance.claimCanvas().then(_ -> canvasFrame(instance, adapter, device, next), failed);
@@ -143,17 +143,21 @@ class Main {
 		var encoder = device.createCommandEncoder();
 		var pass = encoder.beginRenderPass(frame, 1, 0, 0, 1);
 		pass.end();
+		device.submit(encoder);
+		// The frame stays current until present, across submissions.
+		var copy = device.createCommandEncoder();
 		var pitch = 256;
 		var readback = device.createBuffer(pitch * 64, BufferUsage.MapRead | BufferUsage.CopyDst);
-		encoder.copyTextureToBuffer(frame, readback, pitch);
-		device.submit(encoder);
+		copy.copyTextureToBuffer(frame, readback, pitch);
+		device.submit(copy);
 		// Red is the first channel of Rgba8 and the third of Bgra8.
 		var expected = format == Format.Rgba8Unorm ? [255, 0, 0, 255] : [0, 0, 255, 255];
 		readback.read(0, pitch * 64).then(pixels -> {
 			for (c in 0...4)
 				check(pixels.get(c) == expected[c], 'canvas: channel $c is ${pixels.get(c)}, not ${expected[c]}');
 			Sys.println('canvas: a ${frame.width()}x${frame.height()} frame cleared to red');
-			for (o in ([pass, encoder, readback, frame, surface] : Array<{function close():Void;}>))
+			surface.present();
+			for (o in ([pass, encoder, copy, readback, frame, surface] : Array<{function close():Void;}>))
 				o.close();
 			next();
 		}, failed);

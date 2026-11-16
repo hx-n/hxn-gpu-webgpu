@@ -71,6 +71,11 @@ inline void *surface_current_texture(void *self) {
 	return out;
 }
 
+inline void surface_present(void *self) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_surface_present((hxn_handle *)self, &err), err);
+}
+
 inline void surface_drop(void *self) {
 	hxn_buf err = HXN_BUF_EMPTY;
 	hxn::check(hxn_gpu_webgpu_surface_drop((hxn_handle *)self, &err), err);

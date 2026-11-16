@@ -1324,4 +1324,7 @@ impl Surface {
             height,
         })
     }
+
+    /// The browser shows the frame when the program returns to its event loop.
+    pub fn present(&self) {}
 }

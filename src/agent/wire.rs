@@ -6070,13 +6070,19 @@ impl Encoder {
         self.u32(reply);
         self.end(at);
     }
+    /// `GPUAgent.present`.
+    pub fn gpu_agent_present(&mut self, this: Handle) {
+        let at = self.begin(222);
+        this.encode(self);
+        self.end(at);
+    }
     /// Forget the object kept under `this`.
     pub fn release(&mut self, this: Handle) {
-        let at = self.begin(222);
+        let at = self.begin(223);
         this.encode(self);
         self.end(at);
     }
 }
 
 /// The number of operations the wire carries.
-pub const OPS: u32 = 223;
+pub const OPS: u32 = 224;

@@ -1279,4 +1279,10 @@ impl Surface {
             height,
         })
     }
+
+    pub fn present(&self) {
+        let mut s = state();
+        s.commands.gpu_agent_present(AGENT_CALLS);
+        s.flush();
+    }
 }

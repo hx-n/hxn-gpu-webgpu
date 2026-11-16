@@ -69,8 +69,9 @@ Instance.create().requestAdapter().then(adapter -> adapter.requestDevice().then(
 Canvas: claim it, `instance.claimCanvas().then(...)`, which fails when another
 browser agent holds it, then `var surface = instance.createCanvasSurface()` and
 `surface.configure(device, surface.preferredFormat(adapter), TextureUsage.RenderAttachment, w, h)`;
-each frame, render into `surface.currentTexture()`. The frame is shown when
-the program returns to the browser's event loop.
+each frame, render into `surface.currentTexture()` and call `surface.present()`.
+Under hxcpp the browser also shows the frame when the program returns to its
+event loop, so read a frame back before then.
 
 Compute: `createComputePipeline(module, "compute_main", layout, constants)`,
 `encoder.beginComputePass()`, `setPipeline`, `setBindGroup`,

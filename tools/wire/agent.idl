@@ -1,9 +1,10 @@
 // What the browser agent answers for the library beyond WebGPU's own calls: the
 // web page's canvas, which the agent asks the page for when the program first
-// needs it, so several agents can share a page. The browser agent keeps an
-// object implementing it under handle 4.
+// needs it, so several agents can share a page, and showing a frame on it. The
+// browser agent keeps an object implementing it under handle 4.
 
 [Exposed=Worker]
 interface GPUAgent {
   Promise<undefined> claimCanvas();
+  undefined present();
 };
