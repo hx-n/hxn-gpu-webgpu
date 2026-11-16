@@ -1,12 +1,10 @@
-//! A thread of this library settles the browser agent's answers, under Ash and Emscripten alike:
-//! the program's thread may be waiting on one of them, so they are not left to it. In a
-//! threaded Emscripten build the web page also starts the agent (`c/agent.c`), which Ash's
-//! page does itself.
+//! What Ash gives the browser agent backend, in a threaded Emscripten build: the web page starts
+//! the agent (`c/agent.c`), and a thread of this library settles its answers. The program's
+//! thread may be waiting on one of them, so they are not left to it.
 
 use std::ffi::c_void;
 use std::sync::atomic::{AtomicI32, Ordering::SeqCst};
 
-#[cfg(target_os = "emscripten")]
 unsafe extern "C" {
     fn hxn_gpu_webgpu_agent(address: u32) -> i32;
 }
@@ -14,7 +12,6 @@ unsafe extern "C" {
 /// The word the browser agent adds one to, and notifies, after settling a reply.
 static WAKE: AtomicI32 = AtomicI32::new(0);
 
-#[cfg(target_os = "emscripten")]
 pub unsafe fn ash_host_agent(_name: *const u8, _name_len: u32, address: u32) -> i32 {
     unsafe { hxn_gpu_webgpu_agent(address) }
 }

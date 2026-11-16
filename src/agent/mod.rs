@@ -4,8 +4,9 @@
 //! `page/gpu_webgpu.mjs`, which the web page starts when `Instance.create` asks for it through
 //! `ash_host_agent`. Objects are kept by the browser agent under handles this library picks, so
 //! making one needs no round trip; a batch goes out when a call needs an answer, and on submit.
-//! A promise's answer is a reply record in the program's shared memory, which a thread of this
-//! library settles into an hxn future (`host.rs`), so the program's thread can wait for it.
+//! A promise's answer is a reply record in the program's shared memory, settled into an hxn
+//! future by Ash's watch on the program's thread, or under Emscripten by a thread of this library
+//! (`host.rs`), which lets the program's thread wait for it.
 
 // Generated for all of WebGPU's IDL, of which this backend uses a part.
 #[allow(dead_code, clippy::all)]
@@ -36,17 +37,23 @@ const AGENT: &str = "gpu_webgpu";
 
 static MAILBOX: Mailbox = Mailbox::new();
 
+#[cfg(target_os = "emscripten")]
 mod host;
 #[cfg(target_os = "emscripten")]
-use host::ash_host_agent;
-use host::ash_host_watch;
+use host::{ash_host_agent, ash_host_watch};
 
 #[cfg(target_os = "wasi")]
 unsafe extern "C" {
     fn ash_host_agent(name: *const u8, name_len: u32, address: u32) -> i32;
+    fn ash_host_watch(
+        word: *const u32,
+        handler: unsafe extern "C" fn(*mut std::ffi::c_void),
+        context: *mut std::ffi::c_void,
+    ) -> *const u32;
 }
 
-/// Run on the settling thread whenever the browser agent has settled another reply.
+/// Run whenever the browser agent has settled another reply: by Ash on the program's thread,
+/// under Emscripten on the settling thread.
 unsafe extern "C" fn settled(_: *mut std::ffi::c_void) {
     settle_answered();
 }
@@ -255,8 +262,7 @@ fn start() -> Result<(), String> {
     static AGENT_RUNNING: std::sync::atomic::AtomicBool = std::sync::atomic::AtomicBool::new(false);
     STARTED.call_once(|| {
         // Watched before any request is sent, so no reply is missed. The browser agent adds one
-        // to the word this returns, and notifies it, after settling a reply, which wakes the
-        // settling thread.
+        // to the word this returns, and notifies it, after settling a reply.
         let wake = unsafe {
             ash_host_watch(
                 MAILBOX.settled.as_ptr().cast_const().cast(),

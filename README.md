@@ -105,10 +105,12 @@ such as hxn-gpu-webgl2's, and the canvas goes to the first that claims it. An
 agent's command that throws ends the web page with the command's name and the
 error.
 
-With threads, `await` works: the browser agent settles WebGPU's promises in
-its own Worker while the program's thread waits. Without threads, deliver a
-future with `then`, not `await`: the browser resolves WebGPU's promises on
-the thread the program runs on, and only while that thread is not blocked.
+In a threaded hxcpp build, `await` works: the browser agent answers in its
+own Worker and a thread of the library settles the future while the program's
+thread waits. Otherwise deliver a future with `then`, not `await`. Without
+threads the browser resolves WebGPU's promises on the thread the program runs
+on, only while that thread is not blocked; under Ash the answers are settled
+on the program's thread, which `await` blocks.
 
 ## Classes
 
