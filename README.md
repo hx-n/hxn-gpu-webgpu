@@ -8,7 +8,7 @@ pipelines and command encoders. The library is written in Rust.
 
 | Runtime | Browser support |
 |---|---|
-| hxcpp | Supported. Compile with `-cpp -D emscripten`. |
+| hxcpp | Supported, with or without threads. Compile with `-cpp -D emscripten`, and add `-D hxn_threads` for threads. |
 | Ash | Supported in threaded builds. Compile with `-hl -D wasm -D hxn_threads`. |
 | HashLink | Not supported: the HashLink VM does not run in a browser. Use Ash. |
 | CPPIA | Not supported: the script host is a native hxcpp program. |
@@ -72,24 +72,35 @@ directory and open it in a browser with WebGPU. The haxelib ships the
 library prebuilt for `wasm32-unknown-emscripten` and links Emscripten's
 WebGPU port (`--use-port=emdawnwebgpu`), so no Rust toolchain is needed.
 
-For Ash, with [Ash](https://github.com/rayzor-blade/ash) 0.1.18 or later:
+With `-D hxn_threads`, the program links the library built for threaded wasm
+and runs on Emscripten's pthreads. Its `main` runs on a pthread, and the web
+page's canvas is transferred to that thread. Threaded builds use shared
+memory, so the web page must be served with cross-origin isolation headers
+(COOP/COEP), which `emrun` sends:
+
+```
+haxe -lib hxn-gpu-webgpu -lib hxnsl -main Main -cpp out -D emscripten -D hxn_threads -D disable_unicode_strings -D HXCPP_LINK_EMSCRIPTEN_EXT=.html
+emrun out/Main.html
+```
+
+For Ash, with [Ash](https://github.com/rayzor-blade/ash) 0.1.19 or later:
 
 ```
 haxe -lib hxn-gpu-webgpu -lib hxnsl -main Main -hl out/main.hl -D wasm -D hxn_threads
-ash --build out/main.wasm --target wasm32-wasip1-threads out/main.hl
+ash --build out/main.wasm --target wasm32-wasip1-threads --native-lib out/libgpu_webgpu.a out/main.hl
 ash serve out
 ```
 
-The haxelib ships the side module for `wasm32-wasip1-threads` and its
-JavaScript files; compiling copies them next to `main.hl`, and Ash writes the
-web page next to `main.wasm`. Threaded builds use shared memory, so the web
-page must be served with cross-origin isolation headers (COOP/COEP), which
-`ash serve` sets.
+The haxelib ships the library for `wasm32-wasip1-threads` and its JavaScript
+files; compiling copies them next to `main.hl`, Ash links the library into
+`main.wasm` and writes the web page next to it. Threaded builds use shared
+memory, so the web page must be served with cross-origin isolation headers
+(COOP/COEP), which `ash serve` sets.
 
-Under hxcpp, deliver a future with `then`, not `await`: `await` blocks the
-web page's only thread, and the browser resolves WebGPU's promises only while
-that thread is free. An Ash program runs in a Worker, where waiting does not
-block the web page.
+Under hxcpp, with or without threads, deliver a future with `then`, not
+`await`. The browser resolves WebGPU's promises on the thread the program
+runs on, and only while that thread is not blocked. Under Ash, `await` works:
+WebGPU runs in a browser agent of its own, a separate Worker.
 
 ## Classes
 
@@ -130,11 +141,12 @@ Requires the [hxn](https://github.com/hx-n/hxn) CLI, Rust nightly with
 targets, Haxe 4.3, hxcpp from git, hxnsl, the Emscripten SDK, Ash, node 22
 and Chrome. `hxn check ... --browser` builds the library and the check as a
 page, opens it in headless Chrome and prints what the program prints.
-`HXN_BROWSER_ARGS` adds Chrome flags; CI runs both on macOS with the
+`HXN_BROWSER_ARGS` adds Chrome flags; CI runs each on macOS with the
 runner's GPU and on Linux with SwiftShader:
 
 ```
 HXN_BROWSER_ARGS=--enable-unsafe-webgpu hxn check cpp --wasm --browser
+HXN_BROWSER_ARGS=--enable-unsafe-webgpu hxn check cpp --wasm --threads --browser
 HXN_BROWSER_ARGS=--enable-unsafe-webgpu hxn check hl --wasm --threads --browser
 ```
 

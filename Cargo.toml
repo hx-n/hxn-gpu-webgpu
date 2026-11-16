@@ -28,6 +28,7 @@ wasm32-unknown-emscripten = ["--use-port=emdawnwebgpu"]
 wasm32-unknown-emscripten-threads = ["-sOFFSCREENCANVAS_SUPPORT"]
 
 [dependencies]
-# hxn after 0.3.3: threaded Ash side modules, page files and Ash pages.
-hxn = { git = "https://github.com/hx-n/hxn.git", rev = "cbf7e13" }
-hxn-future = { git = "https://github.com/hx-n/hxn.git", rev = "cbf7e13" }
+# hxn after 0.3.3: Ash wasm libraries linked with --native-lib, threaded
+# hxcpp builds for Emscripten, page files and Ash web pages.
+hxn = { git = "https://github.com/hx-n/hxn.git", rev = "10afe2f" }
+hxn-future = { git = "https://github.com/hx-n/hxn.git", rev = "10afe2f" }

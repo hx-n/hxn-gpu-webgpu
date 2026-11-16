@@ -1,4 +1,4 @@
-//! The backend for a threaded Ash side module. Each call is encoded onto the wire (`wire.rs`,
+//! The backend for a threaded Ash wasm library. Each call is encoded onto the wire (`wire.rs`,
 //! generated from WebGPU's IDL by x-idl) into one batch, which the browser agent runs on
 //! `navigator.gpu` in a Worker of its own; the browser agent is `page/gpu_webgpu.mjs`, which the web page
 //! starts when `Instance.create` asks for it through `ash_host_agent`. Objects are kept by the

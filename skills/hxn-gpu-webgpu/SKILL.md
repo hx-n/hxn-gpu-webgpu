@@ -1,6 +1,6 @@
 ---
 name: hxn-gpu-webgpu
-description: Drive the GPU from Haxe in the browser through WebGPU with the hxn-gpu-webgpu haxelib (package `gpu.webgpu`), for hxcpp programs compiled to wasm with `-D emscripten` and threaded Ash programs (`-D wasm -D hxn_threads`); HashLink and CPPIA do not run in a browser. Use when a Haxe program in a web page runs compute shaders or renders with WebGPU, reads buffers back, or uses HXSL shaders from hxnsl as WGSL.
+description: Drive the GPU from Haxe in the browser through WebGPU with the hxn-gpu-webgpu haxelib (package `gpu.webgpu`), for hxcpp programs compiled to wasm with `-D emscripten`, threaded or not, and threaded Ash programs (`-D wasm -D hxn_threads`); HashLink and CPPIA do not run in a browser. Use when a Haxe program in a web page runs compute shaders or renders with WebGPU, reads buffers back, or uses HXSL shaders from hxnsl as WGSL.
 ---
 
 # hxn-gpu-webgpu
@@ -15,18 +15,21 @@ haxe -lib hxn-gpu-webgpu -lib hxnsl -main Main -cpp out -D emscripten -D disable
 
 Needs the Emscripten SDK on `PATH` and hxcpp from git (its Emscripten
 toolchain uses wasm exceptions). Serve `out/` and open `Main.html` in a
-browser with WebGPU.
+browser with WebGPU. Add `-D hxn_threads` for threads: `main` then runs on a
+pthread that holds the canvas, and the web page needs cross-origin isolation
+headers (COOP/COEP), which `emrun out/Main.html` sends.
 
-Ash (0.1.18 or later), threaded:
+Ash (0.1.19 or later), threaded:
 
 ```
 haxe -lib hxn-gpu-webgpu -lib hxnsl -main Main -hl out/main.hl -D wasm -D hxn_threads
-ash --build out/main.wasm --target wasm32-wasip1-threads out/main.hl
+ash --build out/main.wasm --target wasm32-wasip1-threads --native-lib out/libgpu_webgpu.a out/main.hl
 ash serve out          # sends the cross-origin isolation headers shared memory needs
 ```
 
-The compile copies the side module and the browser agent's `.mjs` files beside
-`main.hl`. The haxelib carries both builds prebuilt; no Rust needed.
+The compile copies the library, `libgpu_webgpu.a`, and the browser agent's
+`.mjs` files beside `main.hl`. The haxelib carries both builds prebuilt; no
+Rust needed.
 
 ## Use
 
@@ -76,10 +79,10 @@ bytesPerRow)`, `device.createSampler(Filter.Linear, AddressMode.ClampToEdge)`,
 
 ## Rules
 
-- Under hxcpp, deliver a future with `then`, never `await`: `await` blocks
-  the web page's only thread, and the browser resolves WebGPU's promises only
-  while that thread is free. An Ash program runs in a Worker, so waiting there
-  does not block the web page.
+- Under hxcpp, threaded or not, deliver a future with `then`, never `await`:
+  the browser resolves WebGPU's promises on the program's thread, and only
+  while that thread is not blocked. Under Ash `await` works, since WebGPU runs
+  in a browser agent of its own.
 - Synchronization is WebGPU's: no barriers. `device.completed()` settles when
   submitted work has finished.
 - `Device.submit(encoder)` finishes the encoder; record a new one after.
@@ -98,6 +101,8 @@ renders and samples a texture, reading each result back.
 
 ## Working on this repository
 
-Test with the hxn CLI, hxnsl, the Emscripten SDK and Chrome:
-`HXN_BROWSER_ARGS=--enable-unsafe-webgpu hxn check cpp --wasm --browser`.
+Test with the hxn CLI, hxnsl, the Emscripten SDK, Ash and Chrome, with
+`HXN_BROWSER_ARGS=--enable-unsafe-webgpu`: `hxn check cpp --wasm --browser`,
+`hxn check cpp --wasm --threads --browser` and
+`hxn check hl --wasm --threads --browser`.
 `src/ffi.rs` is generated from emdawnwebgpu's webgpu.h by bindgen.
