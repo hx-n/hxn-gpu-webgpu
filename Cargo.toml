@@ -19,8 +19,13 @@ releasenote = "First release."
 haxe = "examples/check"
 haxe-flags = ["-lib", "hxnsl"]
 init = ["gpu.webgpu.Shaders.register()"]
-# Emscripten's WebGPU: webgpu.h implemented on the page's navigator.gpu.
-link-args = { wasm32-unknown-emscripten = ["--use-port=emdawnwebgpu"] }
+
+# Emscripten's WebGPU: webgpu.h implemented on the page's navigator.gpu. A
+# threaded build runs main on a pthread, which the web page's canvas is
+# transferred to.
+[package.metadata.hxn.link-args]
+wasm32-unknown-emscripten = ["--use-port=emdawnwebgpu"]
+wasm32-unknown-emscripten-threads = ["-sOFFSCREENCANVAS_SUPPORT"]
 
 [dependencies]
 # hxn after 0.3.3: threaded Ash side modules, page files and Ash pages.
