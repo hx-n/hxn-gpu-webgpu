@@ -20,8 +20,16 @@ export function start({ memory, address, canvas, fail }) {
   }
   worker = new Worker(new URL("./gpu_webgpu_worker.mjs", import.meta.url), { type: "module" });
   // A command that throws in the Worker, or the Worker failing, ends the web page with the
-  // reason, where Ash passes `fail`; an older Ash only has the Worker's console.
-  const end = (reason) => (typeof fail === "function" ? fail(reason) : console.error(reason));
+  // reason, where Ash passes `fail`, and stops the Worker so the commands after it add no
+  // errors of their own. An older Ash only has the console, and the Worker keeps serving.
+  let failed = false;
+  const end = (reason) => {
+    if (typeof fail !== "function") return console.error(reason);
+    if (failed) return;
+    failed = true;
+    worker.terminate();
+    fail(reason);
+  };
   worker.onmessage = ({ data }) => {
     if (data && data.fail !== undefined) end(data.fail);
   };
