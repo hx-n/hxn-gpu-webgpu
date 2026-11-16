@@ -23,6 +23,10 @@ package gpu.webgpu;
 </target>
 <!-- After the archive: a linker that reads libraries in order looks in them only for what is already undefined. -->
 <include name="${GPU_WEBGPU_LINK}" if="GPU_WEBGPU_LINK"/>
+<section if="emscripten hxn_threads">
+	<compiler id="emscripten"><flag value="-pthread"/></compiler>
+	<linker id="exe"><flag value="-pthread"/><flag value="-sPTHREAD_POOL_SIZE=8"/><flag value="-sALLOW_MEMORY_GROWTH=1"/><flag value="-sPROXY_TO_PTHREAD"/><flag value="-sEXIT_RUNTIME=1"/></linker>
+</section>
 ')
 @:noCompletion class HxnGpuWebgpuNative {
 	static function memory_held():Float;
