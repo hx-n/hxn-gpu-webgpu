@@ -26,8 +26,8 @@ class Main {
 			Sys.println('no WebGPU: ${e.message}');
 			return;
 		}
-		#if (emscripten && hxn_threads)
-		// In a threaded Emscripten build the browser agent settles WebGPU's promises in a Worker of its own, so
+		#if hxn_threads
+		// With threads the browser agent answers WebGPU's promises in a Worker of its own, so
 		// the program's thread can wait for one.
 		try {
 			instance.requestAdapter().await().close();
