@@ -4,7 +4,7 @@ version = 4
 
 [[package]]
 name = "hxn"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "hxn-abi",
  "hxn-macros",
@@ -12,11 +12,11 @@ dependencies = [
 
 [[package]]
 name = "hxn-abi"
-version = "0.3.3"
+version = "0.3.4"
 
 [[package]]
 name = "hxn-future"
-version = "0.3.3"
+version = "0.3.4"
 dependencies = [
  "hxn-abi",
  "krio-core",
@@ -34,7 +34,7 @@ dependencies = [
 
 [[package]]
 name = "hxn-macros"
-version = "0.3.3"
+version = "0.3.4"
 
 [[package]]
 name = "krio-core"
@@ -60,8 +60,8 @@ dependencies = [
 
 [[patch.unused]]
 name = "hxn-c"
-version = "0.3.3"
+version = "0.3.4"
 
 [[patch.unused]]
 name = "hxn-hl"
-version = "0.3.3"
+version = "0.3.4"

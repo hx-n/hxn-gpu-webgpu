@@ -1,5 +1,5 @@
 name: setup
-description: Rust for Emscripten and Ash's threaded wasm, Haxe, hxcpp, the Emscripten SDK, Ash, hxnsl, and the hxn command at the revision Cargo.toml pins.
+description: Rust for Emscripten and Ash's threaded wasm, Haxe, hxcpp, the Emscripten SDK, Ash, hxnsl, and the hxn command at the release Cargo.toml pins.
 
 runs:
   using: composite
@@ -44,13 +44,13 @@ runs:
         mkdir -p "$RUNNER_TEMP/ash"
         (cd "$RUNNER_TEMP/ash" && curl -fsSL "https://github.com/rayzor-blade/ash/releases/download/v0.1.19/$archive" | tar -xz)
         echo "$RUNNER_TEMP/ash" >> "$GITHUB_PATH"
-    # The command of the hxn revision the crate depends on, since the two must
+    # The command of the hxn release the crate depends on, since the two must
     # match.
     - shell: bash
       run: |
-        rev="$(sed -n 's|^hxn = { git = "https://github.com/hx-n/hxn.git", rev = "\([0-9a-f]*\)" }|\1|p' Cargo.toml)"
-        test -n "$rev"
-        cargo install --git https://github.com/hx-n/hxn.git --rev "$rev" --locked hxn-cli
+        tag="$(sed -n 's|^hxn = { git = "https://github.com/hx-n/hxn.git", tag = "\(v[0-9.]*\)" }|\1|p' Cargo.toml)"
+        test -n "$tag"
+        cargo install --git https://github.com/hx-n/hxn.git --tag "$tag" --locked hxn-cli
         hxn version
     # hxnsl, which writes the check's shaders, with its tool prebuilt.
     - shell: bash

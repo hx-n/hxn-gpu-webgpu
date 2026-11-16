@@ -1,0 +1,153 @@
+name: release
+
+# Builds the haxelib: the generated Haxe classes and the wasm libraries for
+# hxcpp, with and without threads, and for threaded Ash, so a program needs
+# no Rust. It then tries the haxelib without Rust, in headless Chrome. A tag
+# `v*` publishes it as a release asset and submits it to haxelib; run by hand,
+# it is a dry run that keeps the ZIP as an artifact.
+on:
+  push:
+    tags: ["v*"]
+  workflow_dispatch:
+
+defaults:
+  run:
+    shell: bash
+
+jobs:
+  haxelib:
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/setup
+      - run: |
+          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+          hxn package cpp --wasm --release --out haxelib
+          hxn package cpp --wasm --threads --release --out haxelib
+          hxn package hl --wasm --threads --release --out haxelib
+          cp -R README.md LICENSE skills haxelib/
+          ls haxelib/native haxelib/page
+          version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
+          (cd haxelib && zip -qr "../hxn-gpu-webgpu-$version.zip" .)
+          echo "ZIP=hxn-gpu-webgpu-$version.zip" >> "$GITHUB_ENV"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: haxelib
+          path: ${{ env.ZIP }}
+
+  # What a Haxe developer does, with no Rust: install the ZIP, build the check
+  # against it for hxcpp, threaded hxcpp and threaded Ash, and run each in a
+  # web page in headless Chrome.
+  try:
+    name: try, ${{ matrix.os }}
+    needs: haxelib
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 60
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: macos-latest
+            chrome: /Applications/Google Chrome.app/Contents/MacOS/Google Chrome
+            flags: --enable-unsafe-webgpu
+          - os: ubuntu-latest
+            chrome: google-chrome
+            flags: --enable-unsafe-webgpu --enable-unsafe-swiftshader --use-webgpu-adapter=swiftshader --enable-features=Vulkan --use-vulkan=swiftshader --use-angle=swiftshader
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          sparse-checkout: examples
+      - uses: actions/download-artifact@v4
+        with:
+          name: haxelib
+      - if: runner.os == 'Linux'
+        uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: 4.3.6
+      - if: runner.os == 'macOS'
+        run: |
+          brew install haxe
+          mkdir -p "$HOME/haxelib" && haxelib setup "$HOME/haxelib"
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      # The hxn haxelib the package depends on comes from haxelib with it.
+      - name: Install the haxelib, hxnsl and hxcpp
+        run: |
+          haxelib install hxn-gpu-webgpu-*.zip --always
+          haxelib install hxnsl --always
+          haxelib git hxcpp https://github.com/HaxeFoundation/hxcpp --quiet
+          dir="$(haxelib libpath hxcpp)"
+          git -C "$dir" checkout -q 615adc73d5ef28f3f74ea47977c39c4f25ce256d
+          (cd "$dir/tools/hxcpp" && haxe compile.hxml)
+      - name: Install the Emscripten SDK and Ash
+        run: |
+          git clone --depth 1 https://github.com/emscripten-core/emsdk "$RUNNER_TEMP/emsdk"
+          "$RUNNER_TEMP/emsdk/emsdk" install 5.0.7
+          "$RUNNER_TEMP/emsdk/emsdk" activate 5.0.7
+          case "$RUNNER_OS" in
+            Linux) archive=ash-linux-x86_64.tar.gz ;;
+            macOS) archive=ash-macos-aarch64.tar.gz ;;
+          esac
+          mkdir -p "$RUNNER_TEMP/ash"
+          (cd "$RUNNER_TEMP/ash" && curl -fsSL "https://github.com/rayzor-blade/ash/releases/download/v0.1.19/$archive" | tar -xz)
+          # The script hxn runs an Ash web page with, from the hxn release
+          # the package depends on.
+          version="$(haxelib path hxn | sed -n 's|.*/hxn/\([0-9,]*\)/.*|\1|p' | head -1 | tr , .)"
+          curl -fsSL "https://raw.githubusercontent.com/hx-n/hxn/v$version/crates/hxn-cli/src/ash_page.mjs" -o "$RUNNER_TEMP/ash_page.mjs"
+      - name: Build and run on hxcpp, threaded hxcpp and Ash
+        working-directory: examples/check
+        env:
+          CHROME: ${{ matrix.chrome }}
+          FLAGS: ${{ matrix.flags }}
+        run: |
+          source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
+          # hxcpp uses a compiler set in CC or CXX instead of emcc.
+          unset CC CXX
+          # emrun runs from the page's directory, so its log path is absolute.
+          page() {
+            local profile
+            profile="$(mktemp -d)"
+            emrun --browser chrome --browser_args="--headless=new --no-first-run --no-default-browser-check --user-data-dir=$profile $FLAGS" \
+              --kill_start --kill_exit --timeout 300 --timeout-returncode 1 \
+              --log-stdout "$PWD/$2" "$1" > /dev/null
+            cat "$2"
+          }
+          haxe -lib hxn-gpu-webgpu -lib hxnsl -main Main -cpp cpp -D emscripten -D disable_unicode_strings -D HXCPP_LINK_EMSCRIPTEN_EXT=.html -D HXCPP_LINK_EMRUN
+          page cpp/Main.html cpp.txt
+          haxe -lib hxn-gpu-webgpu -lib hxnsl -main Main -cpp threads -D emscripten -D hxn_threads -D disable_unicode_strings -D HXCPP_LINK_EMSCRIPTEN_EXT=.html -D HXCPP_LINK_EMRUN
+          page threads/Main.html threads.txt
+          haxe -lib hxn-gpu-webgpu -lib hxnsl -main Main -hl ash/main.hl -D wasm -D hxn_threads
+          "$RUNNER_TEMP/ash/ash" --build ash/main.wasm --target wasm32-wasip1-threads --native-lib ash/libgpu_webgpu.a ash/main.hl
+          # shellcheck disable=SC2086
+          node "$RUNNER_TEMP/ash_page.mjs" "$RUNNER_TEMP/ash/ash" ash "$CHROME" $FLAGS | tee ash.txt
+          for out in cpp.txt threads.txt ash.txt; do
+            for line in 'compute: 64 values' 'render: 4x4 pixels' 'textured: 4x4 pixels' 'canvas: a 64x64 frame'; do
+              grep -q "^$line" "$out" || { echo "::error::$out has no '$line'"; exit 1; }
+            done
+            ! grep -q '^WebGPU .*error' "$out"
+          done
+
+  publish:
+    needs: [haxelib, try]
+    if: startsWith(github.ref, 'refs/tags/')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          name: haxelib
+      - run: echo "ZIP=$(ls hxn-gpu-webgpu-*.zip)" >> "$GITHUB_ENV"
+      - env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" "$ZIP" --title "$GITHUB_REF_NAME" --notes "$(sed -n 's/^releasenote = "\(.*\)"/\1/p' Cargo.toml)"
+      - uses: krdlab/setup-haxe@v1
+        with:
+          haxe-version: 4.3.6
+      # haxelib accepts a new project only from its first contributor.
+      - env:
+          HAXELIB_PASSWORD: ${{ secrets.HAXELIB_PASSWORD }}
+        run: haxelib submit "$ZIP" darmie "$HAXELIB_PASSWORD" --never < /dev/null

@@ -6,6 +6,6 @@
   "license": "Apache",
   "tags": ["webgpu", "gpu", "haxe", "graphics", "compute", "wgsl", "wasm", "emscripten", "browser"],
   "contributors": ["darmie", "rayzor"],
-  "releasenote": "First release.",
-  "dependencies": { "hxn": "0.3.3" }
+  "releasenote": "First release: WebGPU in the browser, for hxcpp programs compiled to wasm with or without threads and for threaded Ash programs: adapters and devices, buffers, textures, samplers, bind groups, compute and render pipelines from hxnsl's WGSL, command encoders, the web page's canvas, and futures for reading buffers back and for the GPU finishing.",
+  "dependencies": { "hxn": "0.3.4" }
 }

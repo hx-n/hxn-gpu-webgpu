@@ -15,7 +15,7 @@ name = "hxn_gpu_webgpu"
 library = "gpu_webgpu"
 haxelib = "hxn-gpu-webgpu"
 contributors = ["darmie", "rayzor"]
-releasenote = "First release."
+releasenote = "First release: WebGPU in the browser, for hxcpp programs compiled to wasm with or without threads and for threaded Ash programs: adapters and devices, buffers, textures, samplers, bind groups, compute and render pipelines from hxnsl's WGSL, command encoders, the web page's canvas, and futures for reading buffers back and for the GPU finishing."
 haxe = "examples/check"
 haxe-flags = ["-lib", "hxnsl"]
 init = ["gpu.webgpu.Shaders.register()"]
@@ -28,7 +28,5 @@ wasm32-unknown-emscripten = ["--use-port=emdawnwebgpu"]
 wasm32-unknown-emscripten-threads = ["-sOFFSCREENCANVAS_SUPPORT"]
 
 [dependencies]
-# hxn after 0.3.3: Ash wasm libraries linked with --native-lib, threaded
-# hxcpp builds for Emscripten, page files and Ash web pages.
-hxn = { git = "https://github.com/hx-n/hxn.git", rev = "10afe2f" }
-hxn-future = { git = "https://github.com/hx-n/hxn.git", rev = "10afe2f" }
+hxn = { git = "https://github.com/hx-n/hxn.git", tag = "v0.3.4" }
+hxn-future = { git = "https://github.com/hx-n/hxn.git", tag = "v0.3.4" }
