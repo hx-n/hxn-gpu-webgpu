@@ -1,0 +1,128 @@
+{
+  "inputs": [
+    {
+      "path": "Cargo.lock",
+      "sha256": "022eab165e52f6edf98e03d052ec953fec6a1da9a3c19452c2d11b866bbc92bf"
+    },
+    {
+      "path": "Cargo.toml",
+      "sha256": "069e78653775ef514b526f52b31eac74b5afea1740ab707b03bd0fafaa711eeb"
+    }
+  ],
+  "packages": [
+    {
+      "name": "cc",
+      "version": "1.11.2",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/rust-lang/cc-rs",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "files": [
+        "licenses/cc-1.11.2/LICENSE-APACHE",
+        "licenses/cc-1.11.2/LICENSE-MIT"
+      ]
+    },
+    {
+      "name": "find-msvc-tools",
+      "version": "0.1.15",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/rust-lang/cc-rs",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "files": [
+        "licenses/find-msvc-tools-0.1.15/LICENSE-APACHE",
+        "licenses/find-msvc-tools-0.1.15/LICENSE-MIT"
+      ]
+    },
+    {
+      "name": "hl_abi",
+      "version": "0.1.0",
+      "license": "MIT",
+      "repository": null,
+      "source": "git+https://github.com/rayzor-blade/hl_abi#f38e06df4c7f7d7e79348df345c71ea70770a82d",
+      "files": [
+        "licenses/hl_abi-0.1.0/LICENSE-MIT",
+        "licenses/hl_abi-0.1.0/UPSTREAM-MANIFEST.txt"
+      ]
+    },
+    {
+      "name": "hxn",
+      "version": "0.3.6",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/hx-n/hxn",
+      "source": "git+https://github.com/hx-n/hxn.git?tag=v0.3.6#41f343676667d6f6cb91aa3a318305b1a75b7dd5",
+      "files": [
+        "licenses/hxn-0.3.6/LICENSE"
+      ]
+    },
+    {
+      "name": "hxn-abi",
+      "version": "0.3.6",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/hx-n/hxn",
+      "source": "git+https://github.com/hx-n/hxn.git?tag=v0.3.6#41f343676667d6f6cb91aa3a318305b1a75b7dd5",
+      "files": [
+        "licenses/hxn-abi-0.3.6/LICENSE"
+      ]
+    },
+    {
+      "name": "hxn-future",
+      "version": "0.3.6",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/hx-n/hxn",
+      "source": "git+https://github.com/hx-n/hxn.git?tag=v0.3.6#41f343676667d6f6cb91aa3a318305b1a75b7dd5",
+      "files": [
+        "licenses/hxn-future-0.3.6/LICENSE"
+      ]
+    },
+    {
+      "name": "hxn-macros",
+      "version": "0.3.6",
+      "license": "Apache-2.0",
+      "repository": "https://github.com/hx-n/hxn",
+      "source": "git+https://github.com/hx-n/hxn.git?tag=v0.3.6#41f343676667d6f6cb91aa3a318305b1a75b7dd5",
+      "files": [
+        "licenses/hxn-macros-0.3.6/LICENSE"
+      ]
+    },
+    {
+      "name": "krio-core",
+      "version": "0.1.0",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/darmie/krio",
+      "source": "git+https://github.com/darmie/krio?rev=ecf740f8de98965d3c0f238b4d22636318821836#ecf740f8de98965d3c0f238b4d22636318821836",
+      "files": [
+        "licenses/krio-core-0.1.0/LICENSE"
+      ]
+    },
+    {
+      "name": "krio-parallel",
+      "version": "0.1.0",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/darmie/krio",
+      "source": "git+https://github.com/darmie/krio?rev=ecf740f8de98965d3c0f238b4d22636318821836#ecf740f8de98965d3c0f238b4d22636318821836",
+      "files": [
+        "licenses/krio-parallel-0.1.0/LICENSE"
+      ]
+    },
+    {
+      "name": "krio-runtime",
+      "version": "0.1.0",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/darmie/krio",
+      "source": "git+https://github.com/darmie/krio?rev=ecf740f8de98965d3c0f238b4d22636318821836#ecf740f8de98965d3c0f238b4d22636318821836",
+      "files": [
+        "licenses/krio-runtime-0.1.0/LICENSE"
+      ]
+    },
+    {
+      "name": "shlex",
+      "version": "2.0.1",
+      "license": "MIT OR Apache-2.0",
+      "repository": "https://github.com/comex/rust-shlex",
+      "source": "registry+https://github.com/rust-lang/crates.io-index",
+      "files": [
+        "licenses/shlex-2.0.1/LICENSE-APACHE",
+        "licenses/shlex-2.0.1/LICENSE-MIT"
+      ]
+    }
+  ]
+}

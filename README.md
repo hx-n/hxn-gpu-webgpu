@@ -178,3 +178,9 @@ describes the library for coding agents. The haxelib includes it.
 ## License
 
 Apache-2.0.
+
+## Third-party notices
+
+Dependency licenses and redistribution notices are in
+[third-party/NOTICES.md](https://github.com/hx-n/hxn-gpu-webgpu/blob/main/third-party/NOTICES.md). Retain the applicable
+notices when redistributing binaries.

@@ -20,13 +20,14 @@ jobs:
     timeout-minutes: 60
     steps:
       - uses: actions/checkout@v4
+      - run: python3 scripts/third_party_notices.py --check
       - uses: ./.github/actions/setup
       - run: |
           source "$RUNNER_TEMP/emsdk/emsdk_env.sh"
           hxn package cpp --wasm --release --out haxelib
           hxn package cpp --wasm --threads --release --out haxelib
           hxn package hl --wasm --threads --release --out haxelib
-          cp -R README.md LICENSE skills haxelib/
+          cp -R README.md LICENSE skills third-party haxelib/
           ls haxelib/native haxelib/page
           version="$(sed -n 's/^version = "\(.*\)"/\1/p' Cargo.toml | head -1)"
           (cd haxelib && zip -qr "../hxn-gpu-webgpu-$version.zip" .)
