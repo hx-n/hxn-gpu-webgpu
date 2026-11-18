@@ -121,6 +121,10 @@ hxn_status hxn_gpu_webgpu_future_take_unit(hxn_handle *self, int32_t *out, hxn_b
 hxn_status hxn_gpu_webgpu_future_take_device(hxn_handle *self, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_future_take_bytes(hxn_handle *self, hxn_buf *out, hxn_buf *err);
 
+/* Configures capture and takes a bounded diagnostic batch. */
+void hxn_gpu_webgpu_log_level(int32_t level);
+hxn_status hxn_gpu_webgpu_log_take(hxn_buf *out, hxn_buf *err);
+
 /* The bytes the library's values hold that the host's collector cannot see,
  * and whether the library asked for a collection since the last call. */
 double hxn_gpu_webgpu_memory_held(void);

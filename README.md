@@ -130,8 +130,8 @@ All in the package `hxn.gpu.webgpu`:
 | `CommandEncoder`, `ComputePass`, `RenderPass` | Passes and copies, recorded until `Device.submit`. |
 
 Every object holds its WebGPU object until `close()`. A failure WebGPU
-reports at once is thrown as a Haxe exception. Validation errors are logged
-in the browser console.
+reports at once is thrown as a Haxe exception. Unthreaded hxcpp routes uncaptured validation and device-loss diagnostics through
+`hxn.Log`. Threaded browser-agent diagnostics remain in the browser console.
 
 ## Shaders from hxnsl
 
@@ -184,3 +184,10 @@ Apache-2.0.
 Dependency licenses and redistribution notices are in
 [third-party/NOTICES.md](https://github.com/hx-n/hxn-gpu-webgpu/blob/main/third-party/NOTICES.md). Retain the applicable
 notices when redistributing binaries.
+
+## Logging
+
+Diagnostics use core `hxn.Log` with target `hxn.gpu.webgpu`. The application
+can set `Log.level` and `Log.sink` to capture Haxe and native records together.
+Custom frame loops drain them with `hxn.Loop.sync()`; idle background work
+needs an application-driven `hxn.Log.flush()`.

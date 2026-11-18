@@ -224,6 +224,7 @@ pub struct Instance {
 #[hxn::methods]
 impl Instance {
     pub fn create() -> Result<Instance, String> {
+        hxn::log::debug!(target: "hxn.gpu.webgpu", "opening browser WebGPU");
         Ok(Instance {
             inner: backend::Instance::create()?,
         })

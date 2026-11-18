@@ -253,7 +253,7 @@ unsafe extern "C" fn device_requested(
     }
 }
 
-/// Prints what WebGPU reports outside any error scope: a validation error, for one.
+/// Queues uncaptured WebGPU diagnostics for the application logging sink.
 unsafe extern "C" fn uncaptured(
     _: *const WGPUDevice,
     kind: WGPUErrorType,
@@ -270,7 +270,7 @@ unsafe extern "C" fn uncaptured(
     } else {
         "unknown"
     };
-    eprintln!("WebGPU {kind} error: {}", text(message));
+    hxn::log::error!(target: "hxn.gpu.webgpu", "WebGPU {kind} error: {}", text(message));
 }
 
 unsafe extern "C" fn lost(
@@ -283,7 +283,7 @@ unsafe extern "C" fn lost(
     // Destroyed: the program released it.
     if reason != WGPUDeviceLostReason_Destroyed && reason != WGPUDeviceLostReason_CallbackCancelled
     {
-        eprintln!("WebGPU device lost: {}", text(message));
+        hxn::log::error!(target: "hxn.gpu.webgpu", "WebGPU device lost: {}", text(message));
     }
 }
 
@@ -303,8 +303,8 @@ impl Adapter {
             .join(" ")
     }
 
-    /// A device with the default limits and no extra features. Validation errors are logged in
-    /// the browser console.
+    /// A device with the default limits and no extra features. Uncaptured validation errors
+    /// are queued for the application logging sink.
     pub fn request_device(&self) -> Future<crate::Device> {
         let (completer, future) = hxn_future::pending();
         let mut descriptor: WGPUDeviceDescriptor = unsafe { std::mem::zeroed() };

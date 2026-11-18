@@ -31,6 +31,8 @@ package hxn.gpu.webgpu;
 @:noCompletion class HxnGpuWebgpuNative {
 	static function memory_held():Float;
 	static function memory_wanted():Bool;
+	static function log_level(level:Int):Void;
+	public static function log_take():Null<haxe.io.Bytes>;
 	static function instance_create():hxn.Handle;
 	static function instance_request_adapter(self:hxn.Handle):hxn.Handle;
 	static function instance_claim_canvas(self:hxn.Handle):hxn.Handle;

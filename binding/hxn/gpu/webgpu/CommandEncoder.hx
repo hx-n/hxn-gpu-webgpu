@@ -2,9 +2,10 @@
 package hxn.gpu.webgpu;
 
 /** A `GPUCommandEncoder`, recording until `Device.submit`. **/
+@:build(hxn.Log.bind())
 class CommandEncoder {
 	@:noCompletion public var hxnRaw:hxn.Handle;
-	@:noCompletion static final hxnMemory = HxnGpuWebgpuMemory.meter;
+	@:keep @:noCompletion static final hxnMemory = HxnGpuWebgpuMemory.meter;
 
 	/** An object for a value the library returned. **/
 	@:noCompletion public static function hxnAdopt(hxnRaw:hxn.Handle):CommandEncoder {

@@ -2,9 +2,10 @@
 package hxn.gpu.webgpu;
 
 /** The bind group layouts of a pipeline, group 0 first. **/
+@:build(hxn.Log.bind())
 class BindGroupLayouts {
 	@:noCompletion public var hxnRaw:hxn.Handle;
-	@:noCompletion static final hxnMemory = HxnGpuWebgpuMemory.meter;
+	@:keep @:noCompletion static final hxnMemory = HxnGpuWebgpuMemory.meter;
 
 	/** An object for a value the library returned. **/
 	@:noCompletion public static function hxnAdopt(hxnRaw:hxn.Handle):BindGroupLayouts {
