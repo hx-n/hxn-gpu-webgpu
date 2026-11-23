@@ -2,7 +2,6 @@
 package hxn.gpu.webgpu;
 
 /**
-	A texture format, webgpu.h's values.
 	How a pipeline blends what it draws into its color target, as `GPUBlendState`. The factors
 	are hxn-gpu's shared codes, in the order of `GPUBlendFactor` from 0 `"zero"` to 10
 	`"src-alpha-saturated"`, and the operations in the order of `GPUBlendOperation` from 0

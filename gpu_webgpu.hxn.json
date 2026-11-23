@@ -67,7 +67,7 @@
   "records": [
     {
       "name": "Blend",
-      "docs": "A texture format, webgpu.h's values.\nHow a pipeline blends what it draws into its color target, as `GPUBlendState`. The factors\nare hxn-gpu's shared codes, in the order of `GPUBlendFactor` from 0 `\"zero\"` to 10\n`\"src-alpha-saturated\"`, and the operations in the order of `GPUBlendOperation` from 0\n`\"add\"` to 4 `\"max\"`. With `enabled` false, the pipeline has no blend state.",
+      "docs": "How a pipeline blends what it draws into its color target, as `GPUBlendState`. The factors\nare hxn-gpu's shared codes, in the order of `GPUBlendFactor` from 0 `\"zero\"` to 10\n`\"src-alpha-saturated\"`, and the operations in the order of `GPUBlendOperation` from 0\n`\"add\"` to 4 `\"max\"`. With `enabled` false, the pipeline has no blend state.",
       "fields": [
         { "name": "enabled", "type": "bool" },
         { "name": "color_operation", "type": "i32" },
