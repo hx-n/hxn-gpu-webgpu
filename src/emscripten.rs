@@ -636,7 +636,7 @@ impl Device {
         layout: &PipelineLayout,
         format: Format,
         topology: Topology,
-        stride: i32,
+        buffers: Vec<crate::VertexBuffer>,
         attributes: Vec<VertexAttribute>,
         constants: Vec<Constant>,
         blend: crate::Blend,
@@ -655,24 +655,40 @@ impl Device {
                 dstFactor: (blend.alpha_destination + 1) as WGPUBlendFactor,
             },
         };
-        let attributes = attributes
+        // Each buffer's attributes, which its layout points into.
+        let grouped = (0..buffers.len())
+            .map(|index| {
+                attributes
+                    .iter()
+                    .filter(|a| a.buffer as usize == index)
+                    .map(|a| {
+                        Ok(WGPUVertexAttribute {
+                            nextInChain: std::ptr::null_mut(),
+                            format: a.format as WGPUVertexFormat,
+                            offset: u64_of(a.offset as i64, "an attribute's offset")?,
+                            shaderLocation: u32_of(a.location, "a location")?,
+                        })
+                    })
+                    .collect::<Result<Vec<_>, String>>()
+            })
+            .collect::<Result<Vec<_>, String>>()?;
+        let layouts = buffers
             .iter()
-            .map(|a| {
-                Ok(WGPUVertexAttribute {
+            .zip(&grouped)
+            .map(|(b, attributes)| {
+                Ok(WGPUVertexBufferLayout {
                     nextInChain: std::ptr::null_mut(),
-                    format: a.format as WGPUVertexFormat,
-                    offset: u64_of(a.offset as i64, "an attribute's offset")?,
-                    shaderLocation: u32_of(a.location, "a location")?,
+                    stepMode: if b.per_instance {
+                        WGPUVertexStepMode_Instance
+                    } else {
+                        WGPUVertexStepMode_Vertex
+                    },
+                    arrayStride: u64_of(b.stride as i64, "a stride")?,
+                    attributeCount: attributes.len(),
+                    attributes: attributes.as_ptr(),
                 })
             })
             .collect::<Result<Vec<_>, String>>()?;
-        let buffer = WGPUVertexBufferLayout {
-            nextInChain: std::ptr::null_mut(),
-            stepMode: WGPUVertexStepMode_Vertex,
-            arrayStride: u64_of(stride as i64, "a stride")?,
-            attributeCount: attributes.len(),
-            attributes: attributes.as_ptr(),
-        };
         let target = WGPUColorTargetState {
             nextInChain: std::ptr::null_mut(),
             format: format as WGPUTextureFormat,
@@ -701,8 +717,8 @@ impl Device {
             entryPoint: view(vertex_entry),
             constantCount: entries.len(),
             constants: entries.as_ptr(),
-            bufferCount: if attributes.is_empty() { 0 } else { 1 },
-            buffers: &buffer,
+            bufferCount: layouts.len(),
+            buffers: layouts.as_ptr(),
         };
         descriptor.primitive.topology = topology as WGPUPrimitiveTopology;
         descriptor.multisample.count = 1;
@@ -786,24 +802,38 @@ impl Device {
     }
 
     /// Writes all of `texture` from `bytes`, rows `bytes_per_row` apart, in queue order.
+    #[allow(clippy::too_many_arguments)]
     pub fn write_texture(
         &self,
         texture: &Texture,
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
         bytes: &[u8],
         bytes_per_row: i32,
     ) -> Result<(), String> {
         let destination = WGPUTexelCopyTextureInfo {
             texture: texture.raw.0,
             mipLevel: 0,
-            origin: WGPUOrigin3D { x: 0, y: 0, z: 0 },
+            origin: WGPUOrigin3D {
+                x: u32_of(x, "x")?,
+                y: u32_of(y, "y")?,
+                z: 0,
+            },
             aspect: WGPUTextureAspect_All,
         };
+        let height = u32_of(height, "a height")?;
         let layout = WGPUTexelCopyBufferLayout {
             offset: 0,
             bytesPerRow: u32_of(bytes_per_row, "bytes per row")?,
-            rowsPerImage: texture.height as u32,
+            rowsPerImage: height,
         };
-        let size = texture.extent();
+        let size = WGPUExtent3D {
+            width: u32_of(width, "a width")?,
+            height,
+            depthOrArrayLayers: 1,
+        };
         unsafe {
             wgpuQueueWriteTexture(
                 self.inner.queue.0,
@@ -1077,6 +1107,7 @@ impl CommandEncoder {
     pub fn begin_render_pass(
         &mut self,
         target: &Texture,
+        keep: bool,
         r: f64,
         g: f64,
         b: f64,
@@ -1087,7 +1118,11 @@ impl CommandEncoder {
             view: target.view.0,
             depthSlice: DEPTH_SLICE_UNDEFINED,
             resolveTarget: std::ptr::null_mut(),
-            loadOp: WGPULoadOp_Clear,
+            loadOp: if keep {
+                WGPULoadOp_Load
+            } else {
+                WGPULoadOp_Clear
+            },
             storeOp: WGPUStoreOp_Store,
             clearValue: WGPUColor { r, g, b, a },
         };
@@ -1228,11 +1263,51 @@ impl RenderPass {
         Ok(())
     }
 
-    /// Reads vertices for `slot` from all of `buffer`.
-    pub fn set_vertex_buffer(&mut self, slot: i32, buffer: &Buffer) -> Result<(), String> {
+    /// Reads vertices for `slot` from `buffer`, starting `offset` bytes in.
+    pub fn set_vertex_buffer(
+        &mut self,
+        slot: i32,
+        buffer: &Buffer,
+        offset: i64,
+    ) -> Result<(), String> {
         let slot = u32_of(slot, "a slot")?;
+        let offset = u64_of(offset, "an offset")?;
         unsafe {
-            wgpuRenderPassEncoderSetVertexBuffer(self.raw.0, slot, buffer.raw.0, 0, WHOLE_SIZE)
+            wgpuRenderPassEncoderSetVertexBuffer(self.raw.0, slot, buffer.raw.0, offset, WHOLE_SIZE)
+        };
+        Ok(())
+    }
+
+    pub fn set_viewport(&mut self, x: f64, y: f64, width: f64, height: f64) -> Result<(), String> {
+        unsafe {
+            wgpuRenderPassEncoderSetViewport(
+                self.raw.0,
+                x as f32,
+                y as f32,
+                width as f32,
+                height as f32,
+                0.0,
+                1.0,
+            )
+        };
+        Ok(())
+    }
+
+    pub fn set_scissor_rect(
+        &mut self,
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
+    ) -> Result<(), String> {
+        unsafe {
+            wgpuRenderPassEncoderSetScissorRect(
+                self.raw.0,
+                u32_of(x, "x")?,
+                u32_of(y, "y")?,
+                u32_of(width, "a width")?,
+                u32_of(height, "a height")?,
+            )
         };
         Ok(())
     }

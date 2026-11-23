@@ -238,13 +238,23 @@ pub struct Constant {
     pub value: f64,
 }
 
-/// One attribute of a vertex buffer.
+/// One attribute of a vertex buffer: `buffer` is its index among the pipeline's buffers.
 #[hxn::data]
 #[derive(Clone)]
 pub struct VertexAttribute {
     pub location: i32,
     pub format: VertexFormat,
     pub offset: i32,
+    pub buffer: i32,
+}
+
+/// One vertex buffer of a render pipeline: `stride` bytes per vertex, or per instance when
+/// `per_instance`.
+#[hxn::data]
+#[derive(Clone)]
+pub struct VertexBuffer {
+    pub stride: i32,
+    pub per_instance: bool,
 }
 
 /// A WebGPU instance: `navigator.gpu`.
@@ -430,8 +440,8 @@ impl Device {
         })
     }
 
-    /// A render pipeline drawing `topology` into one color target of `format`, from one vertex
-    /// buffer of `stride` bytes per vertex laid out as `attributes`, with `constants` set in both
+    /// Creates a render pipeline drawing `topology` into one color target of `format`, from
+    /// the vertex `buffers` that `attributes` are read from, with `constants` set in both
     /// stages, blending as `blend` describes.
     #[allow(clippy::too_many_arguments)]
     pub fn create_render_pipeline(
@@ -442,12 +452,23 @@ impl Device {
         layout: &PipelineLayout,
         format: Format,
         topology: Topology,
-        stride: i32,
+        buffers: Vec<VertexBuffer>,
         attributes: Vec<VertexAttribute>,
         constants: Vec<Constant>,
         blend: Blend,
     ) -> Result<RenderPipeline, String> {
         check_blend(&blend)?;
+        if let Some(a) = attributes
+            .iter()
+            .find(|a| a.buffer < 0 || a.buffer as usize >= buffers.len())
+        {
+            return Err(format!(
+                "attribute {} reads buffer {} of {}",
+                a.location,
+                a.buffer,
+                buffers.len()
+            ));
+        }
         Ok(RenderPipeline {
             inner: self.inner.create_render_pipeline(
                 &module.inner,
@@ -456,7 +477,7 @@ impl Device {
                 &layout.inner,
                 format,
                 topology,
-                stride,
+                buffers,
                 attributes,
                 constants,
                 blend,
@@ -502,8 +523,26 @@ impl Device {
         bytes: &[u8],
         bytes_per_row: i32,
     ) -> Result<(), String> {
+        let (width, height) = (texture.width(), texture.height());
         self.inner
-            .write_texture(&texture.inner, bytes, bytes_per_row)
+            .write_texture(&texture.inner, 0, 0, width, height, bytes, bytes_per_row)
+    }
+
+    /// Writes the `width` by `height` pixels at `x`, `y` of `texture` from `bytes`, rows
+    /// `bytes_per_row` apart, in queue order.
+    #[allow(clippy::too_many_arguments)]
+    pub fn write_texture_region(
+        &self,
+        texture: &Texture,
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
+        bytes: &[u8],
+        bytes_per_row: i32,
+    ) -> Result<(), String> {
+        self.inner
+            .write_texture(&texture.inner, x, y, width, height, bytes, bytes_per_row)
     }
 
     /// Settles when the GPU has finished the work submitted so far.
@@ -667,17 +706,21 @@ impl CommandEncoder {
         })
     }
 
-    /// A render pass into `target`, cleared first to the color `r`, `g`, `b`, `a`.
+    /// Begins a render pass into `target`, cleared first to the color `r`, `g`, `b`, `a`, or
+    /// with `keep` drawing over what it holds (`loadOp: "load"`).
     pub fn begin_render_pass(
         &mut self,
         target: &Texture,
+        keep: bool,
         r: f64,
         g: f64,
         b: f64,
         a: f64,
     ) -> Result<RenderPass, String> {
         Ok(RenderPass {
-            inner: self.inner.begin_render_pass(&target.inner, r, g, b, a)?,
+            inner: self
+                .inner
+                .begin_render_pass(&target.inner, keep, r, g, b, a)?,
         })
     }
 
@@ -754,9 +797,30 @@ impl RenderPass {
         self.inner.set_bind_group(index, &group.inner)
     }
 
-    /// Reads vertices for `slot` from all of `buffer`.
-    pub fn set_vertex_buffer(&mut self, slot: i32, buffer: &Buffer) -> Result<(), String> {
-        self.inner.set_vertex_buffer(slot, &buffer.inner)
+    /// Reads vertices for `slot` from `buffer`, starting `offset` bytes in.
+    pub fn set_vertex_buffer(
+        &mut self,
+        slot: i32,
+        buffer: &Buffer,
+        offset: i64,
+    ) -> Result<(), String> {
+        self.inner.set_vertex_buffer(slot, &buffer.inner, offset)
+    }
+
+    /// Maps clip space onto the `width` by `height` pixels at `x`, `y` of the target.
+    pub fn set_viewport(&mut self, x: f64, y: f64, width: f64, height: f64) -> Result<(), String> {
+        self.inner.set_viewport(x, y, width, height)
+    }
+
+    /// Draws only inside the `width` by `height` pixels at `x`, `y` of the target.
+    pub fn set_scissor_rect(
+        &mut self,
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
+    ) -> Result<(), String> {
+        self.inner.set_scissor_rect(x, y, width, height)
     }
 
     pub fn draw(

@@ -36,12 +36,13 @@ hxn_status hxn_gpu_webgpu_device_create_shader_module(hxn_handle *self, hxn_slic
 hxn_status hxn_gpu_webgpu_device_create_bind_group_layouts(hxn_handle *self, hxn_slice groups, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_create_pipeline_layout(hxn_handle *self, hxn_handle *layouts, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_create_compute_pipeline(hxn_handle *self, hxn_handle *module, hxn_slice entry, hxn_handle *layout, hxn_slice constants, hxn_handle **out, hxn_buf *err);
-hxn_status hxn_gpu_webgpu_device_create_render_pipeline(hxn_handle *self, hxn_handle *module, hxn_slice vertex_entry, hxn_slice fragment_entry, hxn_handle *layout, int32_t format, int32_t topology, int32_t stride, hxn_slice attributes, hxn_slice constants, hxn_slice blend, hxn_handle **out, hxn_buf *err);
+hxn_status hxn_gpu_webgpu_device_create_render_pipeline(hxn_handle *self, hxn_handle *module, hxn_slice vertex_entry, hxn_slice fragment_entry, hxn_handle *layout, int32_t format, int32_t topology, hxn_slice buffers, hxn_slice attributes, hxn_slice constants, hxn_slice blend, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_create_bind_group(hxn_handle *self, hxn_handle *layouts, int32_t group, hxn_handle *entries, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_create_command_encoder(hxn_handle *self, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_submit(hxn_handle *self, hxn_handle *encoder, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_write_buffer(hxn_handle *self, hxn_handle *buffer, int64_t offset, hxn_slice bytes, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_write_texture(hxn_handle *self, hxn_handle *texture, hxn_slice bytes, int32_t bytes_per_row, hxn_buf *err);
+hxn_status hxn_gpu_webgpu_device_write_texture_region(hxn_handle *self, hxn_handle *texture, int32_t x, int32_t y, int32_t width, int32_t height, hxn_slice bytes, int32_t bytes_per_row, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_completed(hxn_handle *self, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_drop(hxn_handle *self, hxn_buf *err);
 
@@ -86,7 +87,7 @@ hxn_status hxn_gpu_webgpu_bind_group_drop(hxn_handle *self, hxn_buf *err);
 
 /* CommandEncoder */
 hxn_status hxn_gpu_webgpu_command_encoder_begin_compute_pass(hxn_handle *self, hxn_handle **out, hxn_buf *err);
-hxn_status hxn_gpu_webgpu_command_encoder_begin_render_pass(hxn_handle *self, hxn_handle *target, double r, double g, double b, double a, hxn_handle **out, hxn_buf *err);
+hxn_status hxn_gpu_webgpu_command_encoder_begin_render_pass(hxn_handle *self, hxn_handle *target, int32_t keep, double r, double g, double b, double a, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_command_encoder_copy_buffer_to_buffer(hxn_handle *self, hxn_handle *source, int64_t source_offset, hxn_handle *destination, int64_t destination_offset, int64_t size, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_command_encoder_copy_texture_to_buffer(hxn_handle *self, hxn_handle *texture, hxn_handle *buffer, int32_t bytes_per_row, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_command_encoder_drop(hxn_handle *self, hxn_buf *err);
@@ -101,7 +102,9 @@ hxn_status hxn_gpu_webgpu_compute_pass_drop(hxn_handle *self, hxn_buf *err);
 /* RenderPass */
 hxn_status hxn_gpu_webgpu_render_pass_set_pipeline(hxn_handle *self, hxn_handle *pipeline, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_render_pass_set_bind_group(hxn_handle *self, int32_t index, hxn_handle *group, hxn_buf *err);
-hxn_status hxn_gpu_webgpu_render_pass_set_vertex_buffer(hxn_handle *self, int32_t slot, hxn_handle *buffer, hxn_buf *err);
+hxn_status hxn_gpu_webgpu_render_pass_set_vertex_buffer(hxn_handle *self, int32_t slot, hxn_handle *buffer, int64_t offset, hxn_buf *err);
+hxn_status hxn_gpu_webgpu_render_pass_set_viewport(hxn_handle *self, double x, double y, double width, double height, hxn_buf *err);
+hxn_status hxn_gpu_webgpu_render_pass_set_scissor_rect(hxn_handle *self, int32_t x, int32_t y, int32_t width, int32_t height, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_render_pass_draw(hxn_handle *self, int32_t vertices, int32_t instances, int32_t first_vertex, int32_t first_instance, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_render_pass_end(hxn_handle *self, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_render_pass_drop(hxn_handle *self, hxn_buf *err);

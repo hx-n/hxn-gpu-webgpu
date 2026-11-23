@@ -75,11 +75,21 @@ class Device {
 	}
 
 	/**
-		A render pipeline drawing `topology` into one color target of `format`, from one vertex
-		buffer of `stride` bytes per vertex laid out as `attributes`, with `constants` set in both
+		Creates a render pipeline drawing `topology` into one color target of `format`, from
+		the vertex `buffers` that `attributes` are read from, with `constants` set in both
 		stages, blending as `blend` describes.
 	**/
-	public function createRenderPipeline(module:ShaderModule, vertexEntry:String, fragmentEntry:String, layout:PipelineLayout, format:Format, topology:Topology, stride:Int, attributes:Array<VertexAttribute>, constants:Array<Constant>, blend:Blend):RenderPipeline {
+	public function createRenderPipeline(module:ShaderModule, vertexEntry:String, fragmentEntry:String, layout:PipelineLayout, format:Format, topology:Topology, buffers:Array<VertexBuffer>, attributes:Array<VertexAttribute>, constants:Array<Constant>, blend:Blend):RenderPipeline {
+		var buffersOut = new haxe.io.BytesBuffer();
+		if (buffers == null)
+			throw new haxe.Exception("null where a list is needed");
+		buffersOut.addInt32(buffers.length);
+		for (item0 in buffers) {
+			if (item0 == null)
+				throw new haxe.Exception("null where a VertexBuffer is needed");
+			item0.hxnWrite(buffersOut);
+		}
+		var buffersBytes = buffersOut.getBytes();
 		var attributesOut = new haxe.io.BytesBuffer();
 		if (attributes == null)
 			throw new haxe.Exception("null where a list is needed");
@@ -105,7 +115,7 @@ class Device {
 			throw new haxe.Exception("null where a Blend is needed");
 		blend.hxnWrite(blendOut);
 		var blendBytes = blendOut.getBytes();
-		return RenderPipeline.hxnAdopt(HxnGpuWebgpuNative.device_create_render_pipeline(hxnRaw, module == null ? null : module.hxnRaw, vertexEntry, fragmentEntry, layout == null ? null : layout.hxnRaw, format, topology, stride, attributesBytes, constantsBytes, blendBytes));
+		return RenderPipeline.hxnAdopt(HxnGpuWebgpuNative.device_create_render_pipeline(hxnRaw, module == null ? null : module.hxnRaw, vertexEntry, fragmentEntry, layout == null ? null : layout.hxnRaw, format, topology, buffersBytes, attributesBytes, constantsBytes, blendBytes));
 	}
 
 	/** Bind group `group` of `layouts`, of the resources `entries` holds. **/
@@ -127,6 +137,13 @@ class Device {
 	/** Writes all of `texture` from `bytes`, rows `bytes_per_row` apart, in queue order. **/
 	public function writeTexture(texture:Texture, bytes:haxe.io.Bytes, bytesPerRow:Int):Void
 		HxnGpuWebgpuNative.device_write_texture(hxnRaw, texture == null ? null : texture.hxnRaw, bytes, bytesPerRow);
+
+	/**
+		Writes the `width` by `height` pixels at `x`, `y` of `texture` from `bytes`, rows
+		`bytes_per_row` apart, in queue order.
+	**/
+	public function writeTextureRegion(texture:Texture, x:Int, y:Int, width:Int, height:Int, bytes:haxe.io.Bytes, bytesPerRow:Int):Void
+		HxnGpuWebgpuNative.device_write_texture_region(hxnRaw, texture == null ? null : texture.hxnRaw, x, y, width, height, bytes, bytesPerRow);
 
 	/** Settles when the GPU has finished the work submitted so far. **/
 	public function completed():hxn.Future<hxn.Unit>

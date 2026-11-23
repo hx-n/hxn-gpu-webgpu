@@ -109,11 +109,20 @@
     },
     {
       "name": "VertexAttribute",
-      "docs": "One attribute of a vertex buffer.",
+      "docs": "One attribute of a vertex buffer: `buffer` is its index among the pipeline's buffers.",
       "fields": [
         { "name": "location", "type": "i32" },
         { "name": "format", "type": "VertexFormat" },
-        { "name": "offset", "type": "i32" }
+        { "name": "offset", "type": "i32" },
+        { "name": "buffer", "type": "i32" }
+      ]
+    },
+    {
+      "name": "VertexBuffer",
+      "docs": "One vertex buffer of a render pipeline: `stride` bytes per vertex, or per instance when\n`per_instance`.",
+      "fields": [
+        { "name": "stride", "type": "i32" },
+        { "name": "per_instance", "type": "bool" }
       ]
     }
   ],
@@ -303,9 +312,9 @@
         },
         {
           "name": "create_render_pipeline",
-          "docs": "A render pipeline drawing `topology` into one color target of `format`, from one vertex\nbuffer of `stride` bytes per vertex laid out as `attributes`, with `constants` set in both\nstages, blending as `blend` describes.",
+          "docs": "Creates a render pipeline drawing `topology` into one color target of `format`, from\nthe vertex `buffers` that `attributes` are read from, with `constants` set in both\nstages, blending as `blend` describes.",
           "kind": "method",
-          "params": [{ "name": "module", "type": "ShaderModule" }, { "name": "vertex_entry", "type": "str" }, { "name": "fragment_entry", "type": "str" }, { "name": "layout", "type": "PipelineLayout" }, { "name": "format", "type": "Format" }, { "name": "topology", "type": "Topology" }, { "name": "stride", "type": "i32" }, { "name": "attributes", "type": "list<VertexAttribute>" }, { "name": "constants", "type": "list<Constant>" }, { "name": "blend", "type": "Blend" }],
+          "params": [{ "name": "module", "type": "ShaderModule" }, { "name": "vertex_entry", "type": "str" }, { "name": "fragment_entry", "type": "str" }, { "name": "layout", "type": "PipelineLayout" }, { "name": "format", "type": "Format" }, { "name": "topology", "type": "Topology" }, { "name": "buffers", "type": "list<VertexBuffer>" }, { "name": "attributes", "type": "list<VertexAttribute>" }, { "name": "constants", "type": "list<Constant>" }, { "name": "blend", "type": "Blend" }],
           "returns": "RenderPipeline",
           "fallible": true,
           "blocking": false
@@ -351,6 +360,15 @@
           "docs": "Writes all of `texture` from `bytes`, rows `bytes_per_row` apart, in queue order.",
           "kind": "method",
           "params": [{ "name": "texture", "type": "Texture" }, { "name": "bytes", "type": "bytes" }, { "name": "bytes_per_row", "type": "i32" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "write_texture_region",
+          "docs": "Writes the `width` by `height` pixels at `x`, `y` of `texture` from `bytes`, rows\n`bytes_per_row` apart, in queue order.",
+          "kind": "method",
+          "params": [{ "name": "texture", "type": "Texture" }, { "name": "x", "type": "i32" }, { "name": "y", "type": "i32" }, { "name": "width", "type": "i32" }, { "name": "height", "type": "i32" }, { "name": "bytes", "type": "bytes" }, { "name": "bytes_per_row", "type": "i32" }],
           "returns": "void",
           "fallible": true,
           "blocking": false
@@ -512,9 +530,9 @@
         },
         {
           "name": "begin_render_pass",
-          "docs": "A render pass into `target`, cleared first to the color `r`, `g`, `b`, `a`.",
+          "docs": "Begins a render pass into `target`, cleared first to the color `r`, `g`, `b`, `a`, or\nwith `keep` drawing over what it holds (`loadOp: \"load\"`).",
           "kind": "mutating",
-          "params": [{ "name": "target", "type": "Texture" }, { "name": "r", "type": "f64" }, { "name": "g", "type": "f64" }, { "name": "b", "type": "f64" }, { "name": "a", "type": "f64" }],
+          "params": [{ "name": "target", "type": "Texture" }, { "name": "keep", "type": "bool" }, { "name": "r", "type": "f64" }, { "name": "g", "type": "f64" }, { "name": "b", "type": "f64" }, { "name": "a", "type": "f64" }],
           "returns": "RenderPass",
           "fallible": true,
           "blocking": false
@@ -600,9 +618,27 @@
         },
         {
           "name": "set_vertex_buffer",
-          "docs": "Reads vertices for `slot` from all of `buffer`.",
+          "docs": "Reads vertices for `slot` from `buffer`, starting `offset` bytes in.",
           "kind": "mutating",
-          "params": [{ "name": "slot", "type": "i32" }, { "name": "buffer", "type": "Buffer" }],
+          "params": [{ "name": "slot", "type": "i32" }, { "name": "buffer", "type": "Buffer" }, { "name": "offset", "type": "i64" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "set_viewport",
+          "docs": "Maps clip space onto the `width` by `height` pixels at `x`, `y` of the target.",
+          "kind": "mutating",
+          "params": [{ "name": "x", "type": "f64" }, { "name": "y", "type": "f64" }, { "name": "width", "type": "f64" }, { "name": "height", "type": "f64" }],
+          "returns": "void",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "set_scissor_rect",
+          "docs": "Draws only inside the `width` by `height` pixels at `x`, `y` of the target.",
+          "kind": "mutating",
+          "params": [{ "name": "x", "type": "i32" }, { "name": "y", "type": "i32" }, { "name": "width", "type": "i32" }, { "name": "height", "type": "i32" }],
           "returns": "void",
           "fallible": true,
           "blocking": false

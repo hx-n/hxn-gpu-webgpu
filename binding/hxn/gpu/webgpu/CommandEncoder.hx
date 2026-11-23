@@ -18,9 +18,12 @@ class CommandEncoder {
 	public function beginComputePass():ComputePass
 		return ComputePass.hxnAdopt(HxnGpuWebgpuNative.command_encoder_begin_compute_pass(hxnRaw));
 
-	/** A render pass into `target`, cleared first to the color `r`, `g`, `b`, `a`. **/
-	public function beginRenderPass(target:Texture, r:Float, g:Float, b:Float, a:Float):RenderPass
-		return RenderPass.hxnAdopt(HxnGpuWebgpuNative.command_encoder_begin_render_pass(hxnRaw, target == null ? null : target.hxnRaw, r, g, b, a));
+	/**
+		Begins a render pass into `target`, cleared first to the color `r`, `g`, `b`, `a`, or
+		with `keep` drawing over what it holds (`loadOp: "load"`).
+	**/
+	public function beginRenderPass(target:Texture, keep:Bool, r:Float, g:Float, b:Float, a:Float):RenderPass
+		return RenderPass.hxnAdopt(HxnGpuWebgpuNative.command_encoder_begin_render_pass(hxnRaw, target == null ? null : target.hxnRaw, keep, r, g, b, a));
 
 	/**
 		Copies `size` bytes from `source` at `source_offset` to `destination` at

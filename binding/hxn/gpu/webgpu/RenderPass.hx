@@ -20,9 +20,17 @@ class RenderPass {
 	public function setBindGroup(index:Int, group:BindGroup):Void
 		HxnGpuWebgpuNative.render_pass_set_bind_group(hxnRaw, index, group == null ? null : group.hxnRaw);
 
-	/** Reads vertices for `slot` from all of `buffer`. **/
-	public function setVertexBuffer(slot:Int, buffer:Buffer):Void
-		HxnGpuWebgpuNative.render_pass_set_vertex_buffer(hxnRaw, slot, buffer == null ? null : buffer.hxnRaw);
+	/** Reads vertices for `slot` from `buffer`, starting `offset` bytes in. **/
+	public function setVertexBuffer(slot:Int, buffer:Buffer, offset:haxe.Int64):Void
+		HxnGpuWebgpuNative.render_pass_set_vertex_buffer(hxnRaw, slot, buffer == null ? null : buffer.hxnRaw, offset);
+
+	/** Maps clip space onto the `width` by `height` pixels at `x`, `y` of the target. **/
+	public function setViewport(x:Float, y:Float, width:Float, height:Float):Void
+		HxnGpuWebgpuNative.render_pass_set_viewport(hxnRaw, x, y, width, height);
+
+	/** Draws only inside the `width` by `height` pixels at `x`, `y` of the target. **/
+	public function setScissorRect(x:Int, y:Int, width:Int, height:Int):Void
+		HxnGpuWebgpuNative.render_pass_set_scissor_rect(hxnRaw, x, y, width, height);
 
 	public function draw(vertices:Int, instances:Int, firstVertex:Int, firstInstance:Int):Void
 		HxnGpuWebgpuNative.render_pass_draw(hxnRaw, vertices, instances, firstVertex, firstInstance);

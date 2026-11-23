@@ -114,8 +114,8 @@ class Main {
 		var module = device.createShaderModule(Tinted.WGSL);
 		var layouts = WebGPUShaders.bindGroupLayouts(device, Tinted.LAYOUT);
 		var layout = device.createPipelineLayout(layouts);
-		var pipeline = device.createRenderPipeline(module, "vertex_main", "fragment_main", layout, Format.Rgba8Unorm, Topology.TriangleStrip, 8,
-			[{location: Tinted.INPUT_position, format: VertexFormat.Float32x2, offset: 0}], [], REPLACE);
+		var pipeline = device.createRenderPipeline(module, "vertex_main", "fragment_main", layout, Format.Rgba8Unorm, Topology.TriangleStrip, [{stride: 8, perInstance: false}],
+			[{location: Tinted.INPUT_position, format: VertexFormat.Float32x2, offset: 0, buffer: 0}], [], REPLACE);
 		var target = device.createTexture(4, 4, Format.Rgba8Unorm, TextureUsage.RenderAttachment | TextureUsage.CopySrc);
 		var positions = quad(device, [-1, -1, 1, -1, -1, 1, 1, 1]);
 		var params = Bytes.alloc(Tinted.PARAMS_SIZE);
@@ -128,10 +128,10 @@ class Main {
 		var group = device.createBindGroup(layouts, Tinted.PARAMS_GROUP, entries);
 
 		var encoder = device.createCommandEncoder();
-		var pass = encoder.beginRenderPass(target, 0, 0, 0, 0);
+		var pass = encoder.beginRenderPass(target, false, 0, 0, 0, 0);
 		pass.setPipeline(pipeline);
 		pass.setBindGroup(Tinted.PARAMS_GROUP, group);
-		pass.setVertexBuffer(0, positions);
+		pass.setVertexBuffer(0, positions, 0);
 		pass.draw(4, 1, 0, 0);
 		pass.end();
 		readTarget(device, encoder, target, [for (c in tint) Math.round(c * 255)], "render", () -> {
@@ -170,8 +170,8 @@ class Main {
 		var module = device.createShaderModule(Tinted.WGSL);
 		var layouts = WebGPUShaders.bindGroupLayouts(device, Tinted.LAYOUT);
 		var layout = device.createPipelineLayout(layouts);
-		var pipeline = device.createRenderPipeline(module, "vertex_main", "fragment_main", layout, Format.Rgba8Unorm, Topology.TriangleStrip, 8,
-			[{location: Tinted.INPUT_position, format: VertexFormat.Float32x2, offset: 0}], [], ALPHA);
+		var pipeline = device.createRenderPipeline(module, "vertex_main", "fragment_main", layout, Format.Rgba8Unorm, Topology.TriangleStrip, [{stride: 8, perInstance: false}],
+			[{location: Tinted.INPUT_position, format: VertexFormat.Float32x2, offset: 0, buffer: 0}], [], ALPHA);
 		var target = device.createTexture(4, 4, Format.Rgba8Unorm, TextureUsage.RenderAttachment | TextureUsage.CopySrc);
 		var positions = quad(device, [-1, -1, 1, -1, -1, 1, 1, 1]);
 		var params = Bytes.alloc(Tinted.PARAMS_SIZE);
@@ -184,10 +184,10 @@ class Main {
 		var group = device.createBindGroup(layouts, Tinted.PARAMS_GROUP, entries);
 
 		var encoder = device.createCommandEncoder();
-		var pass = encoder.beginRenderPass(target, 0, 0, 1, 1);
+		var pass = encoder.beginRenderPass(target, false, 0, 0, 1, 1);
 		pass.setPipeline(pipeline);
 		pass.setBindGroup(Tinted.PARAMS_GROUP, group);
-		pass.setVertexBuffer(0, positions);
+		pass.setVertexBuffer(0, positions, 0);
 		pass.draw(4, 1, 0, 0);
 		pass.end();
 		readTarget(device, encoder, target, [128, 0, 128, 255], "blend", () -> {
@@ -209,7 +209,7 @@ class Main {
 		surface.configure(device, format, TextureUsage.RenderAttachment | TextureUsage.CopySrc, 64, 64);
 		var frame = surface.currentTexture();
 		var encoder = device.createCommandEncoder();
-		var pass = encoder.beginRenderPass(frame, 1, 0, 0, 1);
+		var pass = encoder.beginRenderPass(frame, false, 1, 0, 0, 1);
 		pass.end();
 		device.submit(encoder);
 		// The frame stays current until present, across submissions.
@@ -235,9 +235,9 @@ class Main {
 		var module = device.createShaderModule(Textured.WGSL);
 		var layouts = WebGPUShaders.bindGroupLayouts(device, Textured.LAYOUT);
 		var layout = device.createPipelineLayout(layouts);
-		var pipeline = device.createRenderPipeline(module, "vertex_main", "fragment_main", layout, Format.Rgba8Unorm, Topology.TriangleStrip, 16, [
-			{location: Textured.INPUT_position, format: VertexFormat.Float32x2, offset: 0},
-			{location: Textured.INPUT_uv, format: VertexFormat.Float32x2, offset: 8}
+		var pipeline = device.createRenderPipeline(module, "vertex_main", "fragment_main", layout, Format.Rgba8Unorm, Topology.TriangleStrip, [{stride: 16, perInstance: false}], [
+			{location: Textured.INPUT_position, format: VertexFormat.Float32x2, offset: 0, buffer: 0},
+			{location: Textured.INPUT_uv, format: VertexFormat.Float32x2, offset: 8, buffer: 0}
 		], [], REPLACE);
 
 		// A 2x2 image of one color.
@@ -258,10 +258,10 @@ class Main {
 		var vertices = quad(device, [-1, -1, 0, 1, 1, -1, 1, 1, -1, 1, 0, 0, 1, 1, 1, 0]);
 		var target = device.createTexture(4, 4, Format.Rgba8Unorm, TextureUsage.RenderAttachment | TextureUsage.CopySrc);
 		var encoder = device.createCommandEncoder();
-		var pass = encoder.beginRenderPass(target, 0, 0, 0, 0);
+		var pass = encoder.beginRenderPass(target, false, 0, 0, 0, 0);
 		pass.setPipeline(pipeline);
 		pass.setBindGroup(Textured.TEXTURE_image_GROUP, group);
-		pass.setVertexBuffer(0, vertices);
+		pass.setVertexBuffer(0, vertices, 0);
 		pass.draw(4, 1, 0, 0);
 		pass.end();
 		readTarget(device, encoder, target, color, "textured", () -> {

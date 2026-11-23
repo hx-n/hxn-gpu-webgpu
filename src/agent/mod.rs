@@ -791,7 +791,7 @@ impl Device {
         layout: &PipelineLayout,
         format: Format,
         topology: Topology,
-        stride: i32,
+        buffers: Vec<crate::VertexBuffer>,
         attributes: Vec<VertexAttribute>,
         constants: Vec<Constant>,
         blend: crate::Blend,
@@ -808,23 +808,33 @@ impl Device {
                 dst_factor: Some(blend_factor(blend.alpha_destination)),
             },
         });
-        let attributes = attributes
+        let buffers = buffers
             .iter()
-            .map(|a| {
-                Ok(wire::GPUVertexAttribute {
-                    format: vertex_format(a.format),
-                    offset: u64_of(a.offset as i64, "an attribute's offset")?,
-                    shader_location: u32_of(a.location, "a location")?,
-                })
+            .enumerate()
+            .map(|(index, b)| {
+                let attributes = attributes
+                    .iter()
+                    .filter(|a| a.buffer as usize == index)
+                    .map(|a| {
+                        Ok(wire::GPUVertexAttribute {
+                            format: vertex_format(a.format),
+                            offset: u64_of(a.offset as i64, "an attribute's offset")?,
+                            shader_location: u32_of(a.location, "a location")?,
+                        })
+                    })
+                    .collect::<Result<Vec<_>, String>>()?;
+                Ok(Some(wire::GPUVertexBufferLayout {
+                    array_stride: u64_of(b.stride as i64, "a stride")?,
+                    step_mode: Some(if b.per_instance {
+                        wire::GPUVertexStepMode::Instance
+                    } else {
+                        wire::GPUVertexStepMode::Vertex
+                    }),
+                    attributes,
+                }))
             })
             .collect::<Result<Vec<_>, String>>()?;
-        let buffers = (!attributes.is_empty()).then(|| {
-            vec![Some(wire::GPUVertexBufferLayout {
-                array_stride: stride as u64,
-                step_mode: None,
-                attributes,
-            })]
-        });
+        let buffers = (!buffers.is_empty()).then_some(buffers);
         let topology = match topology {
             Topology::PointList => wire::GPUPrimitiveTopology::PointList,
             Topology::LineList => wire::GPUPrimitiveTopology::LineList,
@@ -943,13 +953,23 @@ impl Device {
         Ok(())
     }
 
+    #[allow(clippy::too_many_arguments)]
     pub fn write_texture(
         &self,
         texture: &Texture,
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
         bytes: &[u8],
         bytes_per_row: i32,
     ) -> Result<(), String> {
         let bytes_per_row = u32_of(bytes_per_row, "bytes per row")?;
+        let origin = wire::GPUOrigin3D::GPUOrigin3DDict(wire::GPUOrigin3DDict {
+            x: Some(u32_of(x, "x")?),
+            y: Some(u32_of(y, "y")?),
+            z: None,
+        });
         let mut s = state();
         let data = s.stage(bytes);
         s.commands.gpu_queue_write_texture(
@@ -957,16 +977,16 @@ impl Device {
             &wire::GPUTexelCopyTextureInfo {
                 texture: texture.raw.0,
                 mip_level: None,
-                origin: None,
+                origin: Some(origin),
                 aspect: None,
             },
             &data,
             &wire::GPUTexelCopyBufferLayout {
                 offset: None,
                 bytes_per_row: Some(bytes_per_row),
-                rows_per_image: Some(texture.height as u32),
+                rows_per_image: Some(u32_of(height, "a height")?),
             },
-            &extent(texture.width, texture.height),
+            &extent(width, height),
         );
         Ok(())
     }
@@ -1039,6 +1059,7 @@ impl CommandEncoder {
     pub fn begin_render_pass(
         &mut self,
         target: &Texture,
+        keep: bool,
         r: f64,
         g: f64,
         b: f64,
@@ -1055,13 +1076,14 @@ impl CommandEncoder {
                     view: wire::GPUTextureOrGPUTextureView::GPUTextureView(target.view.0),
                     depth_slice: None,
                     resolve_target: None,
-                    clear_value: Some(wire::GPUColor::GPUColorDict(wire::GPUColorDict {
-                        r,
-                        g,
-                        b,
-                        a,
-                    })),
-                    load_op: wire::GPULoadOp::Clear,
+                    clear_value: (!keep).then_some(wire::GPUColor::GPUColorDict(
+                        wire::GPUColorDict { r, g, b, a },
+                    )),
+                    load_op: if keep {
+                        wire::GPULoadOp::Load
+                    } else {
+                        wire::GPULoadOp::Clear
+                    },
                     store_op: wire::GPUStoreOp::Store,
                 })],
                 depth_stencil_attachment: None,
@@ -1190,14 +1212,50 @@ impl RenderPass {
         Ok(())
     }
 
-    pub fn set_vertex_buffer(&mut self, slot: i32, buffer: &Buffer) -> Result<(), String> {
+    pub fn set_vertex_buffer(
+        &mut self,
+        slot: i32,
+        buffer: &Buffer,
+        offset: i64,
+    ) -> Result<(), String> {
         let slot = u32_of(slot, "a slot")?;
+        let offset = u64_of(offset, "an offset")?;
         state().commands.gpu_render_pass_encoder_set_vertex_buffer(
             self.raw.0,
             &slot,
             &Some(buffer.raw.0),
+            &Some(offset),
             &None,
-            &None,
+        );
+        Ok(())
+    }
+
+    pub fn set_viewport(&mut self, x: f64, y: f64, width: f64, height: f64) -> Result<(), String> {
+        state().commands.gpu_render_pass_encoder_set_viewport(
+            self.raw.0,
+            &(x as f32),
+            &(y as f32),
+            &(width as f32),
+            &(height as f32),
+            &0.0,
+            &1.0,
+        );
+        Ok(())
+    }
+
+    pub fn set_scissor_rect(
+        &mut self,
+        x: i32,
+        y: i32,
+        width: i32,
+        height: i32,
+    ) -> Result<(), String> {
+        state().commands.gpu_render_pass_encoder_set_scissor_rect(
+            self.raw.0,
+            &u32_of(x, "x")?,
+            &u32_of(y, "y")?,
+            &u32_of(width, "a width")?,
+            &u32_of(height, "a height")?,
         );
         Ok(())
     }

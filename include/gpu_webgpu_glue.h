@@ -166,12 +166,12 @@ inline void *device_create_compute_pipeline(void *self, void *module, ::String e
 	return out;
 }
 
-inline void *device_create_render_pipeline(void *self, void *module, ::String vertex_entry, ::String fragment_entry, void *layout, int format, int topology, int stride, Array<unsigned char> attributes, Array<unsigned char> constants, Array<unsigned char> blend) {
+inline void *device_create_render_pipeline(void *self, void *module, ::String vertex_entry, ::String fragment_entry, void *layout, int format, int topology, Array<unsigned char> buffers, Array<unsigned char> attributes, Array<unsigned char> constants, Array<unsigned char> blend) {
 	hx::strbuf vertex_entry_storage;
 	hx::strbuf fragment_entry_storage;
 	hxn_handle *out = 0;
 	hxn_buf err = HXN_BUF_EMPTY;
-	hxn::check(hxn_gpu_webgpu_device_create_render_pipeline((hxn_handle *)self, (hxn_handle *)module, hxn::slice(vertex_entry, vertex_entry_storage), hxn::slice(fragment_entry, fragment_entry_storage), (hxn_handle *)layout, format, topology, stride, hxn::slice(attributes), hxn::slice(constants), hxn::slice(blend), &out, &err), err);
+	hxn::check(hxn_gpu_webgpu_device_create_render_pipeline((hxn_handle *)self, (hxn_handle *)module, hxn::slice(vertex_entry, vertex_entry_storage), hxn::slice(fragment_entry, fragment_entry_storage), (hxn_handle *)layout, format, topology, hxn::slice(buffers), hxn::slice(attributes), hxn::slice(constants), hxn::slice(blend), &out, &err), err);
 	return out;
 }
 
@@ -202,6 +202,11 @@ inline void device_write_buffer(void *self, void *buffer, cpp::Int64 offset, Arr
 inline void device_write_texture(void *self, void *texture, Array<unsigned char> bytes, int bytes_per_row) {
 	hxn_buf err = HXN_BUF_EMPTY;
 	hxn::check(hxn_gpu_webgpu_device_write_texture((hxn_handle *)self, (hxn_handle *)texture, hxn::slice(bytes), bytes_per_row, &err), err);
+}
+
+inline void device_write_texture_region(void *self, void *texture, int x, int y, int width, int height, Array<unsigned char> bytes, int bytes_per_row) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_device_write_texture_region((hxn_handle *)self, (hxn_handle *)texture, x, y, width, height, hxn::slice(bytes), bytes_per_row, &err), err);
 }
 
 inline void *device_completed(void *self) {
@@ -330,10 +335,10 @@ inline void *command_encoder_begin_compute_pass(void *self) {
 	return out;
 }
 
-inline void *command_encoder_begin_render_pass(void *self, void *target, double r, double g, double b, double a) {
+inline void *command_encoder_begin_render_pass(void *self, void *target, bool keep, double r, double g, double b, double a) {
 	hxn_handle *out = 0;
 	hxn_buf err = HXN_BUF_EMPTY;
-	hxn::check(hxn_gpu_webgpu_command_encoder_begin_render_pass((hxn_handle *)self, (hxn_handle *)target, r, g, b, a, &out, &err), err);
+	hxn::check(hxn_gpu_webgpu_command_encoder_begin_render_pass((hxn_handle *)self, (hxn_handle *)target, keep ? 1 : 0, r, g, b, a, &out, &err), err);
 	return out;
 }
 
@@ -387,9 +392,19 @@ inline void render_pass_set_bind_group(void *self, int index, void *group) {
 	hxn::check(hxn_gpu_webgpu_render_pass_set_bind_group((hxn_handle *)self, index, (hxn_handle *)group, &err), err);
 }
 
-inline void render_pass_set_vertex_buffer(void *self, int slot, void *buffer) {
+inline void render_pass_set_vertex_buffer(void *self, int slot, void *buffer, cpp::Int64 offset) {
 	hxn_buf err = HXN_BUF_EMPTY;
-	hxn::check(hxn_gpu_webgpu_render_pass_set_vertex_buffer((hxn_handle *)self, slot, (hxn_handle *)buffer, &err), err);
+	hxn::check(hxn_gpu_webgpu_render_pass_set_vertex_buffer((hxn_handle *)self, slot, (hxn_handle *)buffer, offset, &err), err);
+}
+
+inline void render_pass_set_viewport(void *self, double x, double y, double width, double height) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_render_pass_set_viewport((hxn_handle *)self, x, y, width, height, &err), err);
+}
+
+inline void render_pass_set_scissor_rect(void *self, int x, int y, int width, int height) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_render_pass_set_scissor_rect((hxn_handle *)self, x, y, width, height, &err), err);
 }
 
 inline void render_pass_draw(void *self, int vertices, int instances, int first_vertex, int first_instance) {
