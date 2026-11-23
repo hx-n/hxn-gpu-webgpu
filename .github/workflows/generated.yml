@@ -18,6 +18,10 @@ jobs:
     timeout-minutes: 30
     steps:
       - uses: actions/checkout@v4
+      # The release fails when the notices are older than Cargo.toml and Cargo.lock. Refresh them
+      # after a build that wrote the HashLink adapter, whose hl_abi the HashLink library links:
+      # python3 scripts/third_party_notices.py --extra-manifest target/hxn/gpu_webgpu/hl-wasm-threads/crate/Cargo.toml --extra-package hl_abi
+      - run: python3 scripts/third_party_notices.py --check
       - uses: ./.github/actions/setup
       - run: source "$RUNNER_TEMP/emsdk/emsdk_env.sh" && hxn package cpp --wasm --release --out .
       - run: |
