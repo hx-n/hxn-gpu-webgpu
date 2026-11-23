@@ -1,11 +1,11 @@
 {
   "name": "hxn-gpu-webgpu",
-  "version": "0.3.4",
+  "version": "0.3.5",
   "description": "WebGPU for Haxe in the browser, on hxcpp and Ash compiled to wasm: devices, buffers, textures, bind groups, pipelines and command encoders",
   "url": "https://github.com/hx-n/hxn-gpu-webgpu",
   "license": "Apache",
   "tags": ["webgpu", "gpu", "haxe", "graphics", "compute", "wgsl", "wasm", "emscripten", "browser", "hxcpp", "hashlink", "native", "cross"],
   "contributors": ["darmie", "rayzor"],
-  "releasenote": "Use hxn 0.3.9 shared logging with application-owned filtering and sinks; retain pinned dependency redistribution notices.",
+  "releasenote": "Blend what a render pipeline draws into its target.",
   "dependencies": { "hxn": "0.3.9" }
 }

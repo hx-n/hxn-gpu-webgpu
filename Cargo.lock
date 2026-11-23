@@ -84,3 +84,23 @@ name = "shlex"
 version = "2.0.1"
 source = "registry+https://github.com/rust-lang/crates.io-index"
 checksum = "f8fadd59c855ef2080decdef8ff161eb6661b86933c9d82e5ba29dc602a55aba"
+
+[[patch.unused]]
+name = "hxn"
+version = "0.3.10"
+
+[[patch.unused]]
+name = "hxn-abi"
+version = "0.3.10"
+
+[[patch.unused]]
+name = "hxn-c"
+version = "0.3.10"
+
+[[patch.unused]]
+name = "hxn-future"
+version = "0.3.10"
+
+[[patch.unused]]
+name = "hxn-hl"
+version = "0.3.10"

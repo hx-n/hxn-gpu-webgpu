@@ -77,9 +77,9 @@ class Device {
 	/**
 		A render pipeline drawing `topology` into one color target of `format`, from one vertex
 		buffer of `stride` bytes per vertex laid out as `attributes`, with `constants` set in both
-		stages.
+		stages, blending as `blend` describes.
 	**/
-	public function createRenderPipeline(module:ShaderModule, vertexEntry:String, fragmentEntry:String, layout:PipelineLayout, format:Format, topology:Topology, stride:Int, attributes:Array<VertexAttribute>, constants:Array<Constant>):RenderPipeline {
+	public function createRenderPipeline(module:ShaderModule, vertexEntry:String, fragmentEntry:String, layout:PipelineLayout, format:Format, topology:Topology, stride:Int, attributes:Array<VertexAttribute>, constants:Array<Constant>, blend:Blend):RenderPipeline {
 		var attributesOut = new haxe.io.BytesBuffer();
 		if (attributes == null)
 			throw new haxe.Exception("null where a list is needed");
@@ -100,7 +100,12 @@ class Device {
 			item0.hxnWrite(constantsOut);
 		}
 		var constantsBytes = constantsOut.getBytes();
-		return RenderPipeline.hxnAdopt(HxnGpuWebgpuNative.device_create_render_pipeline(hxnRaw, module == null ? null : module.hxnRaw, vertexEntry, fragmentEntry, layout == null ? null : layout.hxnRaw, format, topology, stride, attributesBytes, constantsBytes));
+		var blendOut = new haxe.io.BytesBuffer();
+		if (blend == null)
+			throw new haxe.Exception("null where a Blend is needed");
+		blend.hxnWrite(blendOut);
+		var blendBytes = blendOut.getBytes();
+		return RenderPipeline.hxnAdopt(HxnGpuWebgpuNative.device_create_render_pipeline(hxnRaw, module == null ? null : module.hxnRaw, vertexEntry, fragmentEntry, layout == null ? null : layout.hxnRaw, format, topology, stride, attributesBytes, constantsBytes, blendBytes));
 	}
 
 	/** Bind group `group` of `layouts`, of the resources `entries` holds. **/

@@ -639,8 +639,22 @@ impl Device {
         stride: i32,
         attributes: Vec<VertexAttribute>,
         constants: Vec<Constant>,
+        blend: crate::Blend,
     ) -> Result<RenderPipeline, String> {
         let entries = self::constants(&constants);
+        // The C API numbers factors and operations from 1, after `Undefined`.
+        let state = WGPUBlendState {
+            color: WGPUBlendComponent {
+                operation: (blend.color_operation + 1) as WGPUBlendOperation,
+                srcFactor: (blend.color_source + 1) as WGPUBlendFactor,
+                dstFactor: (blend.color_destination + 1) as WGPUBlendFactor,
+            },
+            alpha: WGPUBlendComponent {
+                operation: (blend.alpha_operation + 1) as WGPUBlendOperation,
+                srcFactor: (blend.alpha_source + 1) as WGPUBlendFactor,
+                dstFactor: (blend.alpha_destination + 1) as WGPUBlendFactor,
+            },
+        };
         let attributes = attributes
             .iter()
             .map(|a| {
@@ -662,7 +676,11 @@ impl Device {
         let target = WGPUColorTargetState {
             nextInChain: std::ptr::null_mut(),
             format: format as WGPUTextureFormat,
-            blend: std::ptr::null(),
+            blend: if blend.enabled {
+                &state
+            } else {
+                std::ptr::null()
+            },
             writeMask: WGPUColorWriteMask_All,
         };
         let fragment = WGPUFragmentState {

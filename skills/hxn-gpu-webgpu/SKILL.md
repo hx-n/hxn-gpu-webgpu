@@ -46,7 +46,7 @@ Instance.create().requestAdapter().then(adapter -> adapter.requestDevice().then(
 	var layout = device.createPipelineLayout(layouts);
 	var pipeline = device.createRenderPipeline(module, "vertex_main", "fragment_main", layout,
 		Format.Rgba8Unorm, Topology.TriangleStrip, 8,
-		[{location: Tinted.INPUT_position, format: VertexFormat.Float32x2, offset: 0}], []);
+		[{location: Tinted.INPUT_position, format: VertexFormat.Float32x2, offset: 0}], [], blend);
 	var target = device.createTexture(w, h, Format.Rgba8Unorm, TextureUsage.RenderAttachment | TextureUsage.CopySrc);
 	var uniforms = device.createBufferWith(params, BufferUsage.Uniform);   // padded to 4 bytes
 	var entries = BindGroupEntries.create();
@@ -78,6 +78,18 @@ Compute: `createComputePipeline(module, "compute_main", layout, constants)`,
 `dispatch(x, y, z)`, `end()`. Textures: `device.writeTexture(texture, bytes,
 bytesPerRow)`, `device.createSampler(Filter.Linear, AddressMode.ClampToEdge)`,
 `entries.texture(binding, t)`, `entries.sampler(binding + 1, s)`.
+
+## Blending
+
+`device.createRenderPipeline` takes a `Blend` record last, which becomes the
+color target's `GPUBlendState`: `enabled`, then the operation and the source
+and destination factors of the color and of the alpha. The factors are hxn-gpu's shared codes: 0 `Zero`, 1 `One`, 2 `Src`,
+3 `OneMinusSrc`, 4 `SrcAlpha`, 5 `OneMinusSrcAlpha`, 6 `Dst`, 7 `OneMinusDst`,
+8 `DstAlpha`, 9 `OneMinusDstAlpha` and 10 `SrcAlphaSaturated`. The operations
+are 0 `Add`, 1 `Subtract`, 2 `ReverseSubtract`, 3 `Min` and 4 `Max`. Straight
+alpha is `{enabled: true, colorOperation: 0, colorSource: 4, colorDestination: 5,
+alphaOperation: 0, alphaSource: 1, alphaDestination: 5}`, and `enabled: false`
+writes the color as it is.
 
 ## Rules
 

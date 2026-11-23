@@ -39,11 +39,11 @@ class Main {
 		#end
 		instance.requestAdapter().then(adapter -> {
 			adapter.requestDevice().then(device -> {
-				compute(device, () -> render(device, () -> textured(device, () -> canvas(instance, adapter, device, () -> {
+				compute(device, () -> render(device, () -> blended(device, () -> textured(device, () -> canvas(instance, adapter, device, () -> {
 					device.close();
 					adapter.close();
 					instance.close();
-				}))));
+				})))));
 			}, failed);
 		}, e -> Sys.println('no WebGPU adapter: ${e.message}'));
 	}
@@ -83,7 +83,8 @@ class Main {
 	}
 
 	/** Copies a 4x4 Rgba8 target out, then checks every pixel is `expected`. **/
-	static function readTarget(device:Device, encoder:CommandEncoder, target:Texture, expected:Array<Int>, label:String, next:() -> Void) {
+	static function readTarget(device:Device, encoder:CommandEncoder, target:Texture, expected:Array<Int>, label:String, next:() -> Void,
+			tolerance = 0) {
 		// Rows of a texture copy are 256 bytes apart.
 		var pitch = 256;
 		var readback = device.createBuffer(pitch * 4, BufferUsage.MapRead | BufferUsage.CopyDst);
@@ -94,7 +95,7 @@ class Main {
 				for (x in 0...4)
 					for (c in 0...4) {
 						var at = y * pitch + x * 4 + c;
-						check(pixels.get(at) == expected[c], '$label: pixel $x,$y channel $c is ${pixels.get(at)}, not ${expected[c]}');
+						check(Math.abs(pixels.get(at) - expected[c]) <= tolerance, '$label: pixel $x,$y channel $c is ${pixels.get(at)}, not ${expected[c]}');
 					}
 			Sys.println('$label: 4x4 pixels of ${[for (c in 0...4) pixels.get(c)].join(", ")}');
 			readback.close();
@@ -114,7 +115,7 @@ class Main {
 		var layouts = WebGPUShaders.bindGroupLayouts(device, Tinted.LAYOUT);
 		var layout = device.createPipelineLayout(layouts);
 		var pipeline = device.createRenderPipeline(module, "vertex_main", "fragment_main", layout, Format.Rgba8Unorm, Topology.TriangleStrip, 8,
-			[{location: Tinted.INPUT_position, format: VertexFormat.Float32x2, offset: 0}], []);
+			[{location: Tinted.INPUT_position, format: VertexFormat.Float32x2, offset: 0}], [], REPLACE);
 		var target = device.createTexture(4, 4, Format.Rgba8Unorm, TextureUsage.RenderAttachment | TextureUsage.CopySrc);
 		var positions = quad(device, [-1, -1, 1, -1, -1, 1, 1, 1]);
 		var params = Bytes.alloc(Tinted.PARAMS_SIZE);
@@ -138,6 +139,62 @@ class Main {
 				o.close();
 			next();
 		});
+	}
+
+	// Blending is off: the quad's color replaces the target's.
+	static final REPLACE:Blend = {
+		enabled: false,
+		colorOperation: 0,
+		colorSource: 1,
+		colorDestination: 0,
+		alphaOperation: 0,
+		alphaSource: 1,
+		alphaDestination: 0
+	};
+
+	// Straight alpha: color = source * source alpha + destination * (1 - source alpha),
+	// and alpha = source + destination * (1 - source alpha). The shared factor codes 4
+	// (SrcAlpha), 5 (OneMinusSrcAlpha) and 1 (One), and the operation 0 (Add).
+	static final ALPHA:Blend = {
+		enabled: true,
+		colorOperation: 0,
+		colorSource: 4,
+		colorDestination: 5,
+		alphaOperation: 0,
+		alphaSource: 1,
+		alphaDestination: 5
+	};
+
+	// A half-transparent red quad over a blue target: half red, half blue, opaque.
+	static function blended(device:Device, next:() -> Void) {
+		var module = device.createShaderModule(Tinted.WGSL);
+		var layouts = WebGPUShaders.bindGroupLayouts(device, Tinted.LAYOUT);
+		var layout = device.createPipelineLayout(layouts);
+		var pipeline = device.createRenderPipeline(module, "vertex_main", "fragment_main", layout, Format.Rgba8Unorm, Topology.TriangleStrip, 8,
+			[{location: Tinted.INPUT_position, format: VertexFormat.Float32x2, offset: 0}], [], ALPHA);
+		var target = device.createTexture(4, 4, Format.Rgba8Unorm, TextureUsage.RenderAttachment | TextureUsage.CopySrc);
+		var positions = quad(device, [-1, -1, 1, -1, -1, 1, 1, 1]);
+		var params = Bytes.alloc(Tinted.PARAMS_SIZE);
+		var tint = [1.0, 0.0, 0.0, 0.5];
+		for (i in 0...4)
+			params.setFloat(Tinted.PARAMS_tint + i * 4, tint[i]);
+		var uniforms = device.createBufferWith(params, BufferUsage.Uniform);
+		var entries = BindGroupEntries.create();
+		entries.buffer(Tinted.PARAMS_BINDING, uniforms, 0, -1);
+		var group = device.createBindGroup(layouts, Tinted.PARAMS_GROUP, entries);
+
+		var encoder = device.createCommandEncoder();
+		var pass = encoder.beginRenderPass(target, 0, 0, 1, 1);
+		pass.setPipeline(pipeline);
+		pass.setBindGroup(Tinted.PARAMS_GROUP, group);
+		pass.setVertexBuffer(0, positions);
+		pass.draw(4, 1, 0, 0);
+		pass.end();
+		readTarget(device, encoder, target, [128, 0, 128, 255], "blend", () -> {
+			for (o in ([pass, encoder, group, entries, uniforms, positions, target, pipeline, layout, layouts, module] : Array<{function close():Void;}>))
+				o.close();
+			next();
+		}, 1);
 	}
 
 	/** A frame of the web page's canvas cleared to red, then copied out in a later submission and shown. **/
@@ -181,7 +238,7 @@ class Main {
 		var pipeline = device.createRenderPipeline(module, "vertex_main", "fragment_main", layout, Format.Rgba8Unorm, Topology.TriangleStrip, 16, [
 			{location: Textured.INPUT_position, format: VertexFormat.Float32x2, offset: 0},
 			{location: Textured.INPUT_uv, format: VertexFormat.Float32x2, offset: 8}
-		], []);
+		], [], REPLACE);
 
 		// A 2x2 image of one color.
 		var color = [40, 80, 120, 255];

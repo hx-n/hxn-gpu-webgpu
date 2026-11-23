@@ -66,6 +66,19 @@
   ],
   "records": [
     {
+      "name": "Blend",
+      "docs": "A texture format, webgpu.h's values.\nHow a pipeline blends what it draws into its color target, as `GPUBlendState`. The factors\nare hxn-gpu's shared codes, in the order of `GPUBlendFactor` from 0 `\"zero\"` to 10\n`\"src-alpha-saturated\"`, and the operations in the order of `GPUBlendOperation` from 0\n`\"add\"` to 4 `\"max\"`. With `enabled` false, the pipeline has no blend state.",
+      "fields": [
+        { "name": "enabled", "type": "bool" },
+        { "name": "color_operation", "type": "i32" },
+        { "name": "color_source", "type": "i32" },
+        { "name": "color_destination", "type": "i32" },
+        { "name": "alpha_operation", "type": "i32" },
+        { "name": "alpha_source", "type": "i32" },
+        { "name": "alpha_destination", "type": "i32" }
+      ]
+    },
+    {
       "name": "LayoutEntry",
       "docs": "One entry of a bind group layout. `sample_type`, `view_dimension`, `multisampled`,\n`format` and `access` apply to texture and storage texture entries.",
       "fields": [
@@ -290,9 +303,9 @@
         },
         {
           "name": "create_render_pipeline",
-          "docs": "A render pipeline drawing `topology` into one color target of `format`, from one vertex\nbuffer of `stride` bytes per vertex laid out as `attributes`, with `constants` set in both\nstages.",
+          "docs": "A render pipeline drawing `topology` into one color target of `format`, from one vertex\nbuffer of `stride` bytes per vertex laid out as `attributes`, with `constants` set in both\nstages, blending as `blend` describes.",
           "kind": "method",
-          "params": [{ "name": "module", "type": "ShaderModule" }, { "name": "vertex_entry", "type": "str" }, { "name": "fragment_entry", "type": "str" }, { "name": "layout", "type": "PipelineLayout" }, { "name": "format", "type": "Format" }, { "name": "topology", "type": "Topology" }, { "name": "stride", "type": "i32" }, { "name": "attributes", "type": "list<VertexAttribute>" }, { "name": "constants", "type": "list<Constant>" }],
+          "params": [{ "name": "module", "type": "ShaderModule" }, { "name": "vertex_entry", "type": "str" }, { "name": "fragment_entry", "type": "str" }, { "name": "layout", "type": "PipelineLayout" }, { "name": "format", "type": "Format" }, { "name": "topology", "type": "Topology" }, { "name": "stride", "type": "i32" }, { "name": "attributes", "type": "list<VertexAttribute>" }, { "name": "constants", "type": "list<Constant>" }, { "name": "blend", "type": "Blend" }],
           "returns": "RenderPipeline",
           "fallible": true,
           "blocking": false

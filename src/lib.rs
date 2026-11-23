@@ -34,6 +34,38 @@ use hxn_future::Future;
 hxn::package!("hxn.gpu.webgpu");
 
 /// A texture format, webgpu.h's values.
+/// How a pipeline blends what it draws into its color target, as `GPUBlendState`. The factors
+/// are hxn-gpu's shared codes, in the order of `GPUBlendFactor` from 0 `"zero"` to 10
+/// `"src-alpha-saturated"`, and the operations in the order of `GPUBlendOperation` from 0
+/// `"add"` to 4 `"max"`. With `enabled` false, the pipeline has no blend state.
+#[hxn::data]
+pub struct Blend {
+    pub enabled: bool,
+    pub color_operation: i32,
+    pub color_source: i32,
+    pub color_destination: i32,
+    pub alpha_operation: i32,
+    pub alpha_source: i32,
+    pub alpha_destination: i32,
+}
+
+/// Checks the codes of a blend: factors 0 to 10, operations 0 to 4.
+pub(crate) fn check_blend(blend: &Blend) -> Result<(), String> {
+    for (code, what, top) in [
+        (blend.color_operation, "the color operation", 4),
+        (blend.color_source, "the color source", 10),
+        (blend.color_destination, "the color destination", 10),
+        (blend.alpha_operation, "the alpha operation", 4),
+        (blend.alpha_source, "the alpha source", 10),
+        (blend.alpha_destination, "the alpha destination", 10),
+    ] {
+        if !(0..=top).contains(&code) {
+            return Err(format!("{what} is {code}, and it is 0 to {top}"));
+        }
+    }
+    Ok(())
+}
+
 #[hxn::data]
 #[derive(Clone, Copy)]
 pub enum Format {
@@ -400,7 +432,7 @@ impl Device {
 
     /// A render pipeline drawing `topology` into one color target of `format`, from one vertex
     /// buffer of `stride` bytes per vertex laid out as `attributes`, with `constants` set in both
-    /// stages.
+    /// stages, blending as `blend` describes.
     #[allow(clippy::too_many_arguments)]
     pub fn create_render_pipeline(
         &self,
@@ -413,7 +445,9 @@ impl Device {
         stride: i32,
         attributes: Vec<VertexAttribute>,
         constants: Vec<Constant>,
+        blend: Blend,
     ) -> Result<RenderPipeline, String> {
+        check_blend(&blend)?;
         Ok(RenderPipeline {
             inner: self.inner.create_render_pipeline(
                 &module.inner,
@@ -425,6 +459,7 @@ impl Device {
                 stride,
                 attributes,
                 constants,
+                blend,
             )?,
         })
     }

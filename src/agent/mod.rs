@@ -794,7 +794,20 @@ impl Device {
         stride: i32,
         attributes: Vec<VertexAttribute>,
         constants: Vec<Constant>,
+        blend: crate::Blend,
     ) -> Result<RenderPipeline, String> {
+        let blend = blend.enabled.then(|| wire::GPUBlendState {
+            color: wire::GPUBlendComponent {
+                operation: Some(blend_operation(blend.color_operation)),
+                src_factor: Some(blend_factor(blend.color_source)),
+                dst_factor: Some(blend_factor(blend.color_destination)),
+            },
+            alpha: wire::GPUBlendComponent {
+                operation: Some(blend_operation(blend.alpha_operation)),
+                src_factor: Some(blend_factor(blend.alpha_source)),
+                dst_factor: Some(blend_factor(blend.alpha_destination)),
+            },
+        });
         let attributes = attributes
             .iter()
             .map(|a| {
@@ -848,7 +861,7 @@ impl Device {
                     constants: self::constants(&constants),
                     targets: vec![Some(wire::GPUColorTargetState {
                         format: texture_format(format),
-                        blend: None,
+                        blend,
                         write_mask: None,
                     })],
                 }),
@@ -1292,4 +1305,28 @@ impl Surface {
         s.commands.gpu_agent_present(AGENT_CALLS);
         s.flush();
     }
+}
+
+// The wire's factor of each shared code, which `check_blend` keeps from 0 to 10.
+fn blend_factor(code: i32) -> wire::GPUBlendFactor {
+    use wire::GPUBlendFactor as F;
+    [
+        F::Zero,
+        F::One,
+        F::Src,
+        F::OneMinusSrc,
+        F::SrcAlpha,
+        F::OneMinusSrcAlpha,
+        F::Dst,
+        F::OneMinusDst,
+        F::DstAlpha,
+        F::OneMinusDstAlpha,
+        F::SrcAlphaSaturated,
+    ][code as usize]
+}
+
+// The wire's operation of each shared code, which `check_blend` keeps from 0 to 4.
+fn blend_operation(code: i32) -> wire::GPUBlendOperation {
+    use wire::GPUBlendOperation as O;
+    [O::Add, O::Subtract, O::ReverseSubtract, O::Min, O::Max][code as usize]
 }

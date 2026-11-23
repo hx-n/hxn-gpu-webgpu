@@ -54,7 +54,7 @@ package hxn.gpu.webgpu;
 	static function device_create_bind_group_layouts(self:hxn.Handle, groups:haxe.io.Bytes):hxn.Handle;
 	static function device_create_pipeline_layout(self:hxn.Handle, layouts:hxn.Handle):hxn.Handle;
 	static function device_create_compute_pipeline(self:hxn.Handle, module:hxn.Handle, entry:String, layout:hxn.Handle, constants:haxe.io.Bytes):hxn.Handle;
-	static function device_create_render_pipeline(self:hxn.Handle, module:hxn.Handle, vertexEntry:String, fragmentEntry:String, layout:hxn.Handle, format:Int, topology:Int, stride:Int, attributes:haxe.io.Bytes, constants:haxe.io.Bytes):hxn.Handle;
+	static function device_create_render_pipeline(self:hxn.Handle, module:hxn.Handle, vertexEntry:String, fragmentEntry:String, layout:hxn.Handle, format:Int, topology:Int, stride:Int, attributes:haxe.io.Bytes, constants:haxe.io.Bytes, blend:haxe.io.Bytes):hxn.Handle;
 	static function device_create_bind_group(self:hxn.Handle, layouts:hxn.Handle, group:Int, entries:hxn.Handle):hxn.Handle;
 	static function device_create_command_encoder(self:hxn.Handle):hxn.Handle;
 	static function device_submit(self:hxn.Handle, encoder:hxn.Handle):Void;
