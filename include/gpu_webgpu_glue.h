@@ -166,12 +166,12 @@ inline void *device_create_compute_pipeline(void *self, void *module, ::String e
 	return out;
 }
 
-inline void *device_create_render_pipeline(void *self, void *module, ::String vertex_entry, ::String fragment_entry, void *layout, int format, int topology, int stride, Array<unsigned char> attributes, Array<unsigned char> constants) {
+inline void *device_create_render_pipeline(void *self, void *module, ::String vertex_entry, ::String fragment_entry, void *layout, int format, int topology, int stride, Array<unsigned char> attributes, Array<unsigned char> constants, Array<unsigned char> blend) {
 	hx::strbuf vertex_entry_storage;
 	hx::strbuf fragment_entry_storage;
 	hxn_handle *out = 0;
 	hxn_buf err = HXN_BUF_EMPTY;
-	hxn::check(hxn_gpu_webgpu_device_create_render_pipeline((hxn_handle *)self, (hxn_handle *)module, hxn::slice(vertex_entry, vertex_entry_storage), hxn::slice(fragment_entry, fragment_entry_storage), (hxn_handle *)layout, format, topology, stride, hxn::slice(attributes), hxn::slice(constants), &out, &err), err);
+	hxn::check(hxn_gpu_webgpu_device_create_render_pipeline((hxn_handle *)self, (hxn_handle *)module, hxn::slice(vertex_entry, vertex_entry_storage), hxn::slice(fragment_entry, fragment_entry_storage), (hxn_handle *)layout, format, topology, stride, hxn::slice(attributes), hxn::slice(constants), hxn::slice(blend), &out, &err), err);
 	return out;
 }
 

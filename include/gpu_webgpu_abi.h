@@ -36,7 +36,7 @@ hxn_status hxn_gpu_webgpu_device_create_shader_module(hxn_handle *self, hxn_slic
 hxn_status hxn_gpu_webgpu_device_create_bind_group_layouts(hxn_handle *self, hxn_slice groups, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_create_pipeline_layout(hxn_handle *self, hxn_handle *layouts, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_create_compute_pipeline(hxn_handle *self, hxn_handle *module, hxn_slice entry, hxn_handle *layout, hxn_slice constants, hxn_handle **out, hxn_buf *err);
-hxn_status hxn_gpu_webgpu_device_create_render_pipeline(hxn_handle *self, hxn_handle *module, hxn_slice vertex_entry, hxn_slice fragment_entry, hxn_handle *layout, int32_t format, int32_t topology, int32_t stride, hxn_slice attributes, hxn_slice constants, hxn_handle **out, hxn_buf *err);
+hxn_status hxn_gpu_webgpu_device_create_render_pipeline(hxn_handle *self, hxn_handle *module, hxn_slice vertex_entry, hxn_slice fragment_entry, hxn_handle *layout, int32_t format, int32_t topology, int32_t stride, hxn_slice attributes, hxn_slice constants, hxn_slice blend, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_create_bind_group(hxn_handle *self, hxn_handle *layouts, int32_t group, hxn_handle *entries, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_create_command_encoder(hxn_handle *self, hxn_handle **out, hxn_buf *err);
 hxn_status hxn_gpu_webgpu_device_submit(hxn_handle *self, hxn_handle *encoder, hxn_buf *err);
