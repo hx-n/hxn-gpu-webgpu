@@ -25,6 +25,10 @@ class CommandEncoder {
 	public function beginRenderPass(target:Texture, keep:Bool, r:Float, g:Float, b:Float, a:Float):RenderPass
 		return RenderPass.hxnAdopt(HxnGpuWebgpuNative.command_encoder_begin_render_pass(hxnRaw, target == null ? null : target.hxnRaw, keep, r, g, b, a));
 
+	/** Begins a render pass into the attachments of `targets`. **/
+	public function beginRenderPassWith(targets:RenderTargets):RenderPass
+		return RenderPass.hxnAdopt(HxnGpuWebgpuNative.command_encoder_begin_render_pass_with(hxnRaw, targets == null ? null : targets.hxnRaw));
+
 	/**
 		Copies `size` bytes from `source` at `source_offset` to `destination` at
 		`destination_offset`.

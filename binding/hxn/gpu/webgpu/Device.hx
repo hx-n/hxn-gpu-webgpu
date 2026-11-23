@@ -118,6 +118,58 @@ class Device {
 		return RenderPipeline.hxnAdopt(HxnGpuWebgpuNative.device_create_render_pipeline(hxnRaw, module == null ? null : module.hxnRaw, vertexEntry, fragmentEntry, layout == null ? null : layout.hxnRaw, format, topology, buffersBytes, attributesBytes, constantsBytes, blendBytes));
 	}
 
+	/**
+		Creates a render pipeline drawing `topology` into the color targets of `targets`, in the
+		order of the fragment entry's outputs, from the vertex `buffers` that `attributes` are read
+		from, with `constants` set in both stages. With `has_depth`, it tests depth in a target of
+		`depth`: the test passes when `compare` holds between a fragment's depth and the target's,
+		in the order of `GPUCompareFunction` from 0 `"never"` to 7 `"always"`, which hxn-gpu's
+		drivers share, and with `write` a fragment that passes writes its depth.
+	**/
+	public function createRenderPipelineWith(module:ShaderModule, vertexEntry:String, fragmentEntry:String, layout:PipelineLayout, targets:Array<ColorTarget>, hasDepth:Bool, depth:Format, compare:Int, write:Bool, topology:Topology, buffers:Array<VertexBuffer>, attributes:Array<VertexAttribute>, constants:Array<Constant>):RenderPipeline {
+		var targetsOut = new haxe.io.BytesBuffer();
+		if (targets == null)
+			throw new haxe.Exception("null where a list is needed");
+		targetsOut.addInt32(targets.length);
+		for (item0 in targets) {
+			if (item0 == null)
+				throw new haxe.Exception("null where a ColorTarget is needed");
+			item0.hxnWrite(targetsOut);
+		}
+		var targetsBytes = targetsOut.getBytes();
+		var buffersOut = new haxe.io.BytesBuffer();
+		if (buffers == null)
+			throw new haxe.Exception("null where a list is needed");
+		buffersOut.addInt32(buffers.length);
+		for (item0 in buffers) {
+			if (item0 == null)
+				throw new haxe.Exception("null where a VertexBuffer is needed");
+			item0.hxnWrite(buffersOut);
+		}
+		var buffersBytes = buffersOut.getBytes();
+		var attributesOut = new haxe.io.BytesBuffer();
+		if (attributes == null)
+			throw new haxe.Exception("null where a list is needed");
+		attributesOut.addInt32(attributes.length);
+		for (item0 in attributes) {
+			if (item0 == null)
+				throw new haxe.Exception("null where a VertexAttribute is needed");
+			item0.hxnWrite(attributesOut);
+		}
+		var attributesBytes = attributesOut.getBytes();
+		var constantsOut = new haxe.io.BytesBuffer();
+		if (constants == null)
+			throw new haxe.Exception("null where a list is needed");
+		constantsOut.addInt32(constants.length);
+		for (item0 in constants) {
+			if (item0 == null)
+				throw new haxe.Exception("null where a Constant is needed");
+			item0.hxnWrite(constantsOut);
+		}
+		var constantsBytes = constantsOut.getBytes();
+		return RenderPipeline.hxnAdopt(HxnGpuWebgpuNative.device_create_render_pipeline_with(hxnRaw, module == null ? null : module.hxnRaw, vertexEntry, fragmentEntry, layout == null ? null : layout.hxnRaw, targetsBytes, hasDepth, depth, compare, write, topology, buffersBytes, attributesBytes, constantsBytes));
+	}
+
 	/** Bind group `group` of `layouts`, of the resources `entries` holds. **/
 	public function createBindGroup(layouts:BindGroupLayouts, group:Int, entries:BindGroupEntries):BindGroup
 		return BindGroup.hxnAdopt(HxnGpuWebgpuNative.device_create_bind_group(hxnRaw, layouts == null ? null : layouts.hxnRaw, group, entries == null ? null : entries.hxnRaw));

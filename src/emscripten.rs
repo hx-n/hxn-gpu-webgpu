@@ -634,27 +634,30 @@ impl Device {
         vertex_entry: &str,
         fragment_entry: &str,
         layout: &PipelineLayout,
-        format: Format,
+        targets: Vec<crate::ColorTarget>,
+        depth: Option<(Format, i32, bool)>,
         topology: Topology,
         buffers: Vec<crate::VertexBuffer>,
         attributes: Vec<VertexAttribute>,
         constants: Vec<Constant>,
-        blend: crate::Blend,
     ) -> Result<RenderPipeline, String> {
         let entries = self::constants(&constants);
-        // The C API numbers factors and operations from 1, after `Undefined`.
-        let state = WGPUBlendState {
-            color: WGPUBlendComponent {
-                operation: (blend.color_operation + 1) as WGPUBlendOperation,
-                srcFactor: (blend.color_source + 1) as WGPUBlendFactor,
-                dstFactor: (blend.color_destination + 1) as WGPUBlendFactor,
-            },
-            alpha: WGPUBlendComponent {
-                operation: (blend.alpha_operation + 1) as WGPUBlendOperation,
-                srcFactor: (blend.alpha_source + 1) as WGPUBlendFactor,
-                dstFactor: (blend.alpha_destination + 1) as WGPUBlendFactor,
-            },
-        };
+        // The C API numbers factors, operations and compare functions from 1, after `Undefined`.
+        let states: Vec<WGPUBlendState> = targets
+            .iter()
+            .map(|t| WGPUBlendState {
+                color: WGPUBlendComponent {
+                    operation: (t.color_operation + 1) as WGPUBlendOperation,
+                    srcFactor: (t.color_source + 1) as WGPUBlendFactor,
+                    dstFactor: (t.color_destination + 1) as WGPUBlendFactor,
+                },
+                alpha: WGPUBlendComponent {
+                    operation: (t.alpha_operation + 1) as WGPUBlendOperation,
+                    srcFactor: (t.alpha_source + 1) as WGPUBlendFactor,
+                    dstFactor: (t.alpha_destination + 1) as WGPUBlendFactor,
+                },
+            })
+            .collect();
         // Holds the attributes of each buffer. Each buffer's layout points into its list.
         let grouped = (0..buffers.len())
             .map(|index| {
@@ -689,24 +692,35 @@ impl Device {
                 })
             })
             .collect::<Result<Vec<_>, String>>()?;
-        let target = WGPUColorTargetState {
-            nextInChain: std::ptr::null_mut(),
-            format: format as WGPUTextureFormat,
-            blend: if blend.enabled {
-                &state
+        let color_targets: Vec<WGPUColorTargetState> = targets
+            .iter()
+            .zip(&states)
+            .map(|(t, state)| WGPUColorTargetState {
+                nextInChain: std::ptr::null_mut(),
+                format: t.format as WGPUTextureFormat,
+                blend: if t.enabled { state } else { std::ptr::null() },
+                writeMask: WGPUColorWriteMask_All,
+            })
+            .collect();
+        let depth_state = depth.map(|(format, compare, write)| {
+            let mut state: WGPUDepthStencilState = unsafe { std::mem::zeroed() };
+            state.format = format as WGPUTextureFormat;
+            state.depthWriteEnabled = if write {
+                WGPUOptionalBool_True
             } else {
-                std::ptr::null()
-            },
-            writeMask: WGPUColorWriteMask_All,
-        };
+                WGPUOptionalBool_False
+            };
+            state.depthCompare = (compare + 1) as WGPUCompareFunction;
+            state
+        });
         let fragment = WGPUFragmentState {
             nextInChain: std::ptr::null_mut(),
             module: module.raw.0,
             entryPoint: view(fragment_entry),
             constantCount: entries.len(),
             constants: entries.as_ptr(),
-            targetCount: 1,
-            targets: &target,
+            targetCount: color_targets.len(),
+            targets: color_targets.as_ptr(),
         };
         let mut descriptor: WGPURenderPipelineDescriptor = unsafe { std::mem::zeroed() };
         descriptor.label = unset();
@@ -724,6 +738,9 @@ impl Device {
         descriptor.multisample.count = 1;
         descriptor.multisample.mask = u32::MAX;
         descriptor.fragment = &fragment;
+        if let Some(state) = depth_state.as_ref() {
+            descriptor.depthStencil = state;
+        }
         let raw = unsafe { wgpuDeviceCreateRenderPipeline(self.inner.device.0, &descriptor) };
         if raw.is_null() {
             return Err("creating the render pipeline failed".into());
@@ -946,6 +963,34 @@ impl Buffer {
 }
 
 /// A 2D `GPUTexture` of one level, with one view of all of it.
+/// `RenderTargets` collects the attachments of a render pass: the views of its color
+/// attachments in order, each with whether it keeps what it holds and its clear color, and an
+/// optional depth attachment with whether it keeps its depth and its clear depth.
+pub struct RenderTargets {
+    colors: Vec<(WGPUTextureView, bool, [f64; 4])>,
+    depth: Option<(WGPUTextureView, bool, f64)>,
+}
+
+// The views are handles that this build, without threads, uses on one thread.
+unsafe impl Send for RenderTargets {}
+
+impl RenderTargets {
+    pub fn new() -> RenderTargets {
+        RenderTargets {
+            colors: Vec::new(),
+            depth: None,
+        }
+    }
+
+    pub fn color(&mut self, target: &Texture, keep: bool, rgba: [f64; 4]) {
+        self.colors.push((target.view.0, keep, rgba));
+    }
+
+    pub fn depth(&mut self, target: &Texture, keep: bool, clear: f64) {
+        self.depth = Some((target.view.0, keep, clear));
+    }
+}
+
 pub struct Texture {
     raw: Shared<WGPUTexture>,
     view: Shared<WGPUTextureView>,
@@ -1104,32 +1149,47 @@ impl CommandEncoder {
     }
 
     /// A render pass into `target`, cleared first to the color `r`, `g`, `b`, `a`.
-    pub fn begin_render_pass(
+    pub fn begin_render_pass_with(
         &mut self,
-        target: &Texture,
-        keep: bool,
-        r: f64,
-        g: f64,
-        b: f64,
-        a: f64,
+        targets: &RenderTargets,
     ) -> Result<RenderPass, String> {
-        let attachment = WGPURenderPassColorAttachment {
-            nextInChain: std::ptr::null_mut(),
-            view: target.view.0,
-            depthSlice: DEPTH_SLICE_UNDEFINED,
-            resolveTarget: std::ptr::null_mut(),
-            loadOp: if keep {
+        let load = |keep: bool| {
+            if keep {
                 WGPULoadOp_Load
             } else {
                 WGPULoadOp_Clear
-            },
-            storeOp: WGPUStoreOp_Store,
-            clearValue: WGPUColor { r, g, b, a },
+            }
         };
+        let attachments: Vec<WGPURenderPassColorAttachment> = targets
+            .colors
+            .iter()
+            .map(
+                |&(view, keep, [r, g, b, a])| WGPURenderPassColorAttachment {
+                    nextInChain: std::ptr::null_mut(),
+                    view,
+                    depthSlice: DEPTH_SLICE_UNDEFINED,
+                    resolveTarget: std::ptr::null_mut(),
+                    loadOp: load(keep),
+                    storeOp: WGPUStoreOp_Store,
+                    clearValue: WGPUColor { r, g, b, a },
+                },
+            )
+            .collect();
+        let depth = targets.depth.map(|(view, keep, clear)| {
+            let mut depth: WGPURenderPassDepthStencilAttachment = unsafe { std::mem::zeroed() };
+            depth.view = view;
+            depth.depthLoadOp = load(keep);
+            depth.depthStoreOp = WGPUStoreOp_Store;
+            depth.depthClearValue = clear as f32;
+            depth
+        });
         let mut descriptor: WGPURenderPassDescriptor = unsafe { std::mem::zeroed() };
         descriptor.label = unset();
-        descriptor.colorAttachmentCount = 1;
-        descriptor.colorAttachments = &attachment;
+        descriptor.colorAttachmentCount = attachments.len();
+        descriptor.colorAttachments = attachments.as_ptr();
+        if let Some(depth) = depth.as_ref() {
+            descriptor.depthStencilAttachment = depth;
+        }
         let raw = unsafe { wgpuCommandEncoderBeginRenderPass(self.raw.0, &descriptor) };
         if raw.is_null() {
             return Err("beginning the render pass failed".into());

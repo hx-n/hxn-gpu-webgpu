@@ -86,7 +86,11 @@ reads. `pass.setVertexBuffer(slot, buffer, offset)` starts `offset` bytes in, so
 buffer can hold several batches of instances. `beginRenderPass(target, true, ...)`
 keeps what the target holds (`loadOp: "load"`) and ignores the color.
 `pass.setViewport(x, y, width, height)` and `pass.setScissorRect(x, y, width,
-height)` take pixels from the target's top-left corner.
+height)` take pixels from the target's top-left corner. Several targets and depth: `createRenderPipelineWith(module, vertexEntry, fragmentEntry,
+layout, targets, hasDepth, depthFormat, compare, write, topology, buffers, attributes,
+constants)` takes `ColorTarget` records and compare codes 0 `"never"` to 7 `"always"`;
+`RenderTargets.create()` with `color(texture, keep, r, g, b, a)` and
+`depth(texture, keep, clear)` feeds `encoder.beginRenderPassWith(targets)`.
 
 ## Blending
 

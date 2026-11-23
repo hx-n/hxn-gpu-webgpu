@@ -118,6 +118,20 @@
       ]
     },
     {
+      "name": "ColorTarget",
+      "docs": "Each color target of a render pipeline has a format, and blends as the fields after `format`\nset, with the same codes as `Blend`.",
+      "fields": [
+        { "name": "format", "type": "Format" },
+        { "name": "enabled", "type": "bool" },
+        { "name": "color_operation", "type": "i32" },
+        { "name": "color_source", "type": "i32" },
+        { "name": "color_destination", "type": "i32" },
+        { "name": "alpha_operation", "type": "i32" },
+        { "name": "alpha_source", "type": "i32" },
+        { "name": "alpha_destination", "type": "i32" }
+      ]
+    },
+    {
       "name": "VertexBuffer",
       "docs": "Each vertex buffer of a render pipeline has `stride` bytes for each vertex, or for each\ninstance when `per_instance` is true.",
       "fields": [
@@ -320,6 +334,15 @@
           "blocking": false
         },
         {
+          "name": "create_render_pipeline_with",
+          "docs": "Creates a render pipeline drawing `topology` into the color targets of `targets`, in the\norder of the fragment entry's outputs, from the vertex `buffers` that `attributes` are read\nfrom, with `constants` set in both stages. With `has_depth`, it tests depth in a target of\n`depth`: the test passes when `compare` holds between a fragment's depth and the target's,\nin the order of `GPUCompareFunction` from 0 `\"never\"` to 7 `\"always\"`, which hxn-gpu's\ndrivers share, and with `write` a fragment that passes writes its depth.",
+          "kind": "method",
+          "params": [{ "name": "module", "type": "ShaderModule" }, { "name": "vertex_entry", "type": "str" }, { "name": "fragment_entry", "type": "str" }, { "name": "layout", "type": "PipelineLayout" }, { "name": "targets", "type": "list<ColorTarget>" }, { "name": "has_depth", "type": "bool" }, { "name": "depth", "type": "Format" }, { "name": "compare", "type": "i32" }, { "name": "write", "type": "bool" }, { "name": "topology", "type": "Topology" }, { "name": "buffers", "type": "list<VertexBuffer>" }, { "name": "attributes", "type": "list<VertexAttribute>" }, { "name": "constants", "type": "list<Constant>" }],
+          "returns": "RenderPipeline",
+          "fallible": true,
+          "blocking": false
+        },
+        {
           "name": "create_bind_group",
           "docs": "Bind group `group` of `layouts`, of the resources `entries` holds.",
           "kind": "method",
@@ -516,6 +539,38 @@
       "methods": []
     },
     {
+      "name": "RenderTargets",
+      "docs": "`RenderTargets` collects the attachments of a render pass: color attachments in order, and an\noptional depth attachment. `CommandEncoder.begin_render_pass_with` begins the pass.",
+      "methods": [
+        {
+          "name": "create",
+          "kind": "static",
+          "params": [],
+          "returns": "RenderTargets",
+          "fallible": false,
+          "blocking": false
+        },
+        {
+          "name": "color",
+          "docs": "Adds the next color attachment, `target`, cleared first to `r`, `g`, `b`, `a`, or with\n`keep` drawn over as it is.",
+          "kind": "mutating",
+          "params": [{ "name": "target", "type": "Texture" }, { "name": "keep", "type": "bool" }, { "name": "r", "type": "f64" }, { "name": "g", "type": "f64" }, { "name": "b", "type": "f64" }, { "name": "a", "type": "f64" }],
+          "returns": "void",
+          "fallible": false,
+          "blocking": false
+        },
+        {
+          "name": "depth",
+          "docs": "Sets the depth attachment, `target`, cleared first to `clear`, or with `keep` tested\nagainst as it is.",
+          "kind": "mutating",
+          "params": [{ "name": "target", "type": "Texture" }, { "name": "keep", "type": "bool" }, { "name": "clear", "type": "f64" }],
+          "returns": "void",
+          "fallible": false,
+          "blocking": false
+        }
+      ]
+    },
+    {
       "name": "CommandEncoder",
       "docs": "A `GPUCommandEncoder`, recording until `Device.submit`.",
       "methods": [
@@ -533,6 +588,15 @@
           "docs": "Begins a render pass into `target`, cleared first to the color `r`, `g`, `b`, `a`, or\nwith `keep` drawing over what it holds (`loadOp: \"load\"`).",
           "kind": "mutating",
           "params": [{ "name": "target", "type": "Texture" }, { "name": "keep", "type": "bool" }, { "name": "r", "type": "f64" }, { "name": "g", "type": "f64" }, { "name": "b", "type": "f64" }, { "name": "a", "type": "f64" }],
+          "returns": "RenderPass",
+          "fallible": true,
+          "blocking": false
+        },
+        {
+          "name": "begin_render_pass_with",
+          "docs": "Begins a render pass into the attachments of `targets`.",
+          "kind": "mutating",
+          "params": [{ "name": "targets", "type": "RenderTargets", "borrow": "exclusive" }],
           "returns": "RenderPass",
           "fallible": true,
           "blocking": false

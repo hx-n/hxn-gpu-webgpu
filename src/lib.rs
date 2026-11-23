@@ -249,6 +249,21 @@ pub struct VertexAttribute {
     pub buffer: i32,
 }
 
+/// Each color target of a render pipeline has a format, and blends as the fields after `format`
+/// set, with the same codes as `Blend`.
+#[hxn::data]
+#[derive(Clone)]
+pub struct ColorTarget {
+    pub format: Format,
+    pub enabled: bool,
+    pub color_operation: i32,
+    pub color_source: i32,
+    pub color_destination: i32,
+    pub alpha_operation: i32,
+    pub alpha_source: i32,
+    pub alpha_destination: i32,
+}
+
 /// Each vertex buffer of a render pipeline has `stride` bytes for each vertex, or for each
 /// instance when `per_instance` is true.
 #[hxn::data]
@@ -458,7 +473,70 @@ impl Device {
         constants: Vec<Constant>,
         blend: Blend,
     ) -> Result<RenderPipeline, String> {
-        check_blend(&blend)?;
+        let target = ColorTarget {
+            format,
+            enabled: blend.enabled,
+            color_operation: blend.color_operation,
+            color_source: blend.color_source,
+            color_destination: blend.color_destination,
+            alpha_operation: blend.alpha_operation,
+            alpha_source: blend.alpha_source,
+            alpha_destination: blend.alpha_destination,
+        };
+        self.create_render_pipeline_with(
+            module,
+            vertex_entry,
+            fragment_entry,
+            layout,
+            vec![target],
+            false,
+            Format::Depth32Float,
+            1,
+            true,
+            topology,
+            buffers,
+            attributes,
+            constants,
+        )
+    }
+
+    /// Creates a render pipeline drawing `topology` into the color targets of `targets`, in the
+    /// order of the fragment entry's outputs, from the vertex `buffers` that `attributes` are read
+    /// from, with `constants` set in both stages. With `has_depth`, it tests depth in a target of
+    /// `depth`: the test passes when `compare` holds between a fragment's depth and the target's,
+    /// in the order of `GPUCompareFunction` from 0 `"never"` to 7 `"always"`, which hxn-gpu's
+    /// drivers share, and with `write` a fragment that passes writes its depth.
+    #[allow(clippy::too_many_arguments)]
+    pub fn create_render_pipeline_with(
+        &self,
+        module: &ShaderModule,
+        vertex_entry: &str,
+        fragment_entry: &str,
+        layout: &PipelineLayout,
+        targets: Vec<ColorTarget>,
+        has_depth: bool,
+        depth: Format,
+        compare: i32,
+        write: bool,
+        topology: Topology,
+        buffers: Vec<VertexBuffer>,
+        attributes: Vec<VertexAttribute>,
+        constants: Vec<Constant>,
+    ) -> Result<RenderPipeline, String> {
+        for t in &targets {
+            check_blend(&Blend {
+                enabled: t.enabled,
+                color_operation: t.color_operation,
+                color_source: t.color_source,
+                color_destination: t.color_destination,
+                alpha_operation: t.alpha_operation,
+                alpha_source: t.alpha_source,
+                alpha_destination: t.alpha_destination,
+            })?;
+        }
+        if !(0..=7).contains(&compare) {
+            return Err(format!("a compare function is 0 to 7, not {compare}"));
+        }
         if let Some(a) = attributes
             .iter()
             .find(|a| a.buffer < 0 || a.buffer as usize >= buffers.len())
@@ -476,12 +554,12 @@ impl Device {
                 vertex_entry,
                 fragment_entry,
                 &layout.inner,
-                format,
+                targets,
+                has_depth.then_some((depth, compare, write)),
                 topology,
                 buffers,
                 attributes,
                 constants,
-                blend,
             )?,
         })
     }
@@ -692,6 +770,35 @@ pub struct BindGroup {
 #[hxn::methods]
 impl BindGroup {}
 
+/// `RenderTargets` collects the attachments of a render pass: color attachments in order, and an
+/// optional depth attachment. `CommandEncoder.begin_render_pass_with` begins the pass.
+#[hxn::interface]
+pub struct RenderTargets {
+    inner: backend::RenderTargets,
+}
+
+#[hxn::methods]
+impl RenderTargets {
+    pub fn create() -> RenderTargets {
+        RenderTargets {
+            inner: backend::RenderTargets::new(),
+        }
+    }
+
+    /// Adds the next color attachment, `target`, cleared first to `r`, `g`, `b`, `a`, or with
+    /// `keep` drawn over as it is.
+    #[allow(clippy::too_many_arguments)]
+    pub fn color(&mut self, target: &Texture, keep: bool, r: f64, g: f64, b: f64, a: f64) {
+        self.inner.color(&target.inner, keep, [r, g, b, a]);
+    }
+
+    /// Sets the depth attachment, `target`, cleared first to `clear`, or with `keep` tested
+    /// against as it is.
+    pub fn depth(&mut self, target: &Texture, keep: bool, clear: f64) {
+        self.inner.depth(&target.inner, keep, clear);
+    }
+}
+
 /// A `GPUCommandEncoder`, recording until `Device.submit`.
 #[hxn::interface]
 pub struct CommandEncoder {
@@ -718,10 +825,18 @@ impl CommandEncoder {
         b: f64,
         a: f64,
     ) -> Result<RenderPass, String> {
+        let mut targets = RenderTargets::create();
+        targets.color(target, keep, r, g, b, a);
+        self.begin_render_pass_with(&mut targets)
+    }
+
+    /// Begins a render pass into the attachments of `targets`.
+    pub fn begin_render_pass_with(
+        &mut self,
+        targets: &mut RenderTargets,
+    ) -> Result<RenderPass, String> {
         Ok(RenderPass {
-            inner: self
-                .inner
-                .begin_render_pass(&target.inner, keep, r, g, b, a)?,
+            inner: self.inner.begin_render_pass_with(&targets.inner)?,
         })
     }
 

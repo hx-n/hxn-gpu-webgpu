@@ -304,6 +304,46 @@ impl Drop for Object {
     }
 }
 
+// Maps each shared compare code, from 0 `Never` to 7 `Always`, to its wire value.
+fn compare_function(code: i32) -> wire::GPUCompareFunction {
+    use wire::GPUCompareFunction as C;
+    match code {
+        0 => C::Never,
+        1 => C::Less,
+        2 => C::Equal,
+        3 => C::LessEqual,
+        4 => C::Greater,
+        5 => C::NotEqual,
+        6 => C::GreaterEqual,
+        _ => C::Always,
+    }
+}
+
+/// `RenderTargets` collects the attachments of a render pass: the views of its color
+/// attachments in order, each with whether it keeps what it holds and its clear color, and an
+/// optional depth attachment with whether it keeps its depth and its clear depth.
+pub struct RenderTargets {
+    colors: Vec<(Handle, bool, [f64; 4])>,
+    depth: Option<(Handle, bool, f64)>,
+}
+
+impl RenderTargets {
+    pub fn new() -> RenderTargets {
+        RenderTargets {
+            colors: Vec::new(),
+            depth: None,
+        }
+    }
+
+    pub fn color(&mut self, target: &Texture, keep: bool, rgba: [f64; 4]) {
+        self.colors.push((target.view.0, keep, rgba));
+    }
+
+    pub fn depth(&mut self, target: &Texture, keep: bool, clear: f64) {
+        self.depth = Some((target.view.0, keep, clear));
+    }
+}
+
 fn texture_format(format: Format) -> wire::GPUTextureFormat {
     use wire::GPUTextureFormat as F;
     match format {
@@ -789,24 +829,45 @@ impl Device {
         vertex_entry: &str,
         fragment_entry: &str,
         layout: &PipelineLayout,
-        format: Format,
+        targets: Vec<crate::ColorTarget>,
+        depth: Option<(Format, i32, bool)>,
         topology: Topology,
         buffers: Vec<crate::VertexBuffer>,
         attributes: Vec<VertexAttribute>,
         constants: Vec<Constant>,
-        blend: crate::Blend,
     ) -> Result<RenderPipeline, String> {
-        let blend = blend.enabled.then(|| wire::GPUBlendState {
-            color: wire::GPUBlendComponent {
-                operation: Some(blend_operation(blend.color_operation)),
-                src_factor: Some(blend_factor(blend.color_source)),
-                dst_factor: Some(blend_factor(blend.color_destination)),
-            },
-            alpha: wire::GPUBlendComponent {
-                operation: Some(blend_operation(blend.alpha_operation)),
-                src_factor: Some(blend_factor(blend.alpha_source)),
-                dst_factor: Some(blend_factor(blend.alpha_destination)),
-            },
+        let targets = targets
+            .iter()
+            .map(|t| {
+                Some(wire::GPUColorTargetState {
+                    format: texture_format(t.format),
+                    blend: t.enabled.then(|| wire::GPUBlendState {
+                        color: wire::GPUBlendComponent {
+                            operation: Some(blend_operation(t.color_operation)),
+                            src_factor: Some(blend_factor(t.color_source)),
+                            dst_factor: Some(blend_factor(t.color_destination)),
+                        },
+                        alpha: wire::GPUBlendComponent {
+                            operation: Some(blend_operation(t.alpha_operation)),
+                            src_factor: Some(blend_factor(t.alpha_source)),
+                            dst_factor: Some(blend_factor(t.alpha_destination)),
+                        },
+                    }),
+                    write_mask: None,
+                })
+            })
+            .collect();
+        let depth_stencil = depth.map(|(format, compare, write)| wire::GPUDepthStencilState {
+            format: texture_format(format),
+            depth_write_enabled: Some(write),
+            depth_compare: Some(compare_function(compare)),
+            stencil_front: None,
+            stencil_back: None,
+            stencil_read_mask: None,
+            stencil_write_mask: None,
+            depth_bias: None,
+            depth_bias_slope_scale: None,
+            depth_bias_clamp: None,
         });
         let buffers = buffers
             .iter()
@@ -863,17 +924,13 @@ impl Device {
                     cull_mode: None,
                     unclipped_depth: None,
                 }),
-                depth_stencil: None,
+                depth_stencil,
                 multisample: None,
                 fragment: Some(wire::GPUFragmentState {
                     module: module.raw.0,
                     entry_point: Some(fragment_entry.to_owned()),
                     constants: self::constants(&constants),
-                    targets: vec![Some(wire::GPUColorTargetState {
-                        format: texture_format(format),
-                        blend,
-                        write_mask: None,
-                    })],
+                    targets,
                 }),
             },
         );
@@ -1056,24 +1113,16 @@ impl CommandEncoder {
         })
     }
 
-    pub fn begin_render_pass(
+    pub fn begin_render_pass_with(
         &mut self,
-        target: &Texture,
-        keep: bool,
-        r: f64,
-        g: f64,
-        b: f64,
-        a: f64,
+        targets: &RenderTargets,
     ) -> Result<RenderPass, String> {
-        let mut s = state();
-        let raw = s.handle();
-        s.commands.gpu_command_encoder_begin_render_pass(
-            self.raw.0,
-            raw,
-            &wire::GPURenderPassDescriptor {
-                label: None,
-                color_attachments: vec![Some(wire::GPURenderPassColorAttachment {
-                    view: wire::GPUTextureOrGPUTextureView::GPUTextureView(target.view.0),
+        let color_attachments = targets
+            .colors
+            .iter()
+            .map(|&(view, keep, [r, g, b, a])| {
+                Some(wire::GPURenderPassColorAttachment {
+                    view: wire::GPUTextureOrGPUTextureView::GPUTextureView(view),
                     depth_slice: None,
                     resolve_target: None,
                     clear_value: (!keep).then_some(wire::GPUColor::GPUColorDict(
@@ -1085,8 +1134,36 @@ impl CommandEncoder {
                         wire::GPULoadOp::Clear
                     },
                     store_op: wire::GPUStoreOp::Store,
-                })],
-                depth_stencil_attachment: None,
+                })
+            })
+            .collect();
+        let depth_stencil_attachment =
+            targets.depth.map(
+                |(view, keep, clear)| wire::GPURenderPassDepthStencilAttachment {
+                    view: wire::GPUTextureOrGPUTextureView::GPUTextureView(view),
+                    depth_clear_value: (!keep).then_some(clear as f32),
+                    depth_load_op: Some(if keep {
+                        wire::GPULoadOp::Load
+                    } else {
+                        wire::GPULoadOp::Clear
+                    }),
+                    depth_store_op: Some(wire::GPUStoreOp::Store),
+                    depth_read_only: None,
+                    stencil_clear_value: None,
+                    stencil_load_op: None,
+                    stencil_store_op: None,
+                    stencil_read_only: None,
+                },
+            );
+        let mut s = state();
+        let raw = s.handle();
+        s.commands.gpu_command_encoder_begin_render_pass(
+            self.raw.0,
+            raw,
+            &wire::GPURenderPassDescriptor {
+                label: None,
+                color_attachments,
+                depth_stencil_attachment,
                 occlusion_query_set: None,
                 timestamp_writes: None,
                 max_draw_count: None,

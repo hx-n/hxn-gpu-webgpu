@@ -175,6 +175,15 @@ inline void *device_create_render_pipeline(void *self, void *module, ::String ve
 	return out;
 }
 
+inline void *device_create_render_pipeline_with(void *self, void *module, ::String vertex_entry, ::String fragment_entry, void *layout, Array<unsigned char> targets, bool has_depth, int depth, int compare, bool write, int topology, Array<unsigned char> buffers, Array<unsigned char> attributes, Array<unsigned char> constants) {
+	hx::strbuf vertex_entry_storage;
+	hx::strbuf fragment_entry_storage;
+	hxn_handle *out = 0;
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_device_create_render_pipeline_with((hxn_handle *)self, (hxn_handle *)module, hxn::slice(vertex_entry, vertex_entry_storage), hxn::slice(fragment_entry, fragment_entry_storage), (hxn_handle *)layout, hxn::slice(targets), has_depth ? 1 : 0, depth, compare, write ? 1 : 0, topology, hxn::slice(buffers), hxn::slice(attributes), hxn::slice(constants), &out, &err), err);
+	return out;
+}
+
 inline void *device_create_bind_group(void *self, void *layouts, int group, void *entries) {
 	hxn_handle *out = 0;
 	hxn_buf err = HXN_BUF_EMPTY;
@@ -328,6 +337,28 @@ inline void bind_group_drop(void *self) {
 	hxn::check(hxn_gpu_webgpu_bind_group_drop((hxn_handle *)self, &err), err);
 }
 
+inline void *render_targets_create() {
+	hxn_handle *out = 0;
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_render_targets_create(&out, &err), err);
+	return out;
+}
+
+inline void render_targets_color(void *self, void *target, bool keep, double r, double g, double b, double a) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_render_targets_color((hxn_handle *)self, (hxn_handle *)target, keep ? 1 : 0, r, g, b, a, &err), err);
+}
+
+inline void render_targets_depth(void *self, void *target, bool keep, double clear) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_render_targets_depth((hxn_handle *)self, (hxn_handle *)target, keep ? 1 : 0, clear, &err), err);
+}
+
+inline void render_targets_drop(void *self) {
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_render_targets_drop((hxn_handle *)self, &err), err);
+}
+
 inline void *command_encoder_begin_compute_pass(void *self) {
 	hxn_handle *out = 0;
 	hxn_buf err = HXN_BUF_EMPTY;
@@ -339,6 +370,13 @@ inline void *command_encoder_begin_render_pass(void *self, void *target, bool ke
 	hxn_handle *out = 0;
 	hxn_buf err = HXN_BUF_EMPTY;
 	hxn::check(hxn_gpu_webgpu_command_encoder_begin_render_pass((hxn_handle *)self, (hxn_handle *)target, keep ? 1 : 0, r, g, b, a, &out, &err), err);
+	return out;
+}
+
+inline void *command_encoder_begin_render_pass_with(void *self, void *targets) {
+	hxn_handle *out = 0;
+	hxn_buf err = HXN_BUF_EMPTY;
+	hxn::check(hxn_gpu_webgpu_command_encoder_begin_render_pass_with((hxn_handle *)self, (hxn_handle *)targets, &out, &err), err);
 	return out;
 }
 

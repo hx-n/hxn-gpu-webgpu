@@ -1,11 +1,11 @@
 {
   "name": "hxn-gpu-webgpu",
-  "version": "0.3.5",
+  "version": "0.3.6",
   "description": "WebGPU for Haxe in the browser, on hxcpp and Ash compiled to wasm: devices, buffers, textures, bind groups, pipelines and command encoders",
   "url": "https://github.com/hx-n/hxn-gpu-webgpu",
   "license": "Apache",
   "tags": ["webgpu", "gpu", "haxe", "graphics", "compute", "wgsl", "wasm", "emscripten", "browser", "hxcpp", "hashlink", "native", "cross"],
   "contributors": ["darmie", "rayzor"],
-  "releasenote": "Blend what a pipeline draws, read several vertex buffers per instance and from an offset, and add viewports, scissors, kept passes and partial texture writes.",
+  "releasenote": "Draw into several color targets in one pass, and test and write depth.",
   "dependencies": { "hxn": "0.3.9" }
 }
