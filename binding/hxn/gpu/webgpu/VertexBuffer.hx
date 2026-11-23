@@ -2,8 +2,8 @@
 package hxn.gpu.webgpu;
 
 /**
-	One vertex buffer of a render pipeline: `stride` bytes per vertex, or per instance when
-	`per_instance`.
+	Each vertex buffer of a render pipeline has `stride` bytes for each vertex, or for each
+	instance when `per_instance` is true.
 **/
 @:structInit class VertexBuffer {
 	public var stride:Int;

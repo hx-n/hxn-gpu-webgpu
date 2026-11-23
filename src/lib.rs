@@ -33,10 +33,11 @@ use hxn_future::Future;
 
 hxn::package!("hxn.gpu.webgpu");
 
-/// How a pipeline blends what it draws into its color target, as `GPUBlendState`. The factors
-/// are hxn-gpu's shared codes, in the order of `GPUBlendFactor` from 0 `"zero"` to 10
-/// `"src-alpha-saturated"`, and the operations in the order of `GPUBlendOperation` from 0
-/// `"add"` to 4 `"max"`. With `enabled` false, the pipeline has no blend state.
+/// `Blend` sets how a pipeline blends what it draws into its color target, as `GPUBlendState`
+/// does. The factors are hxn-gpu's shared codes, in the order of `GPUBlendFactor`, from 0
+/// `"zero"` to 10 `"src-alpha-saturated"`. The operations are in the order of
+/// `GPUBlendOperation`, from 0 `"add"` to 4 `"max"`. When `enabled` is false, the pipeline has
+/// no blend state.
 #[hxn::data]
 pub struct Blend {
     pub enabled: bool,
@@ -48,7 +49,7 @@ pub struct Blend {
     pub alpha_destination: i32,
 }
 
-/// Checks the codes of a blend: factors 0 to 10, operations 0 to 4.
+/// Checks that a blend's factor codes are from 0 to 10 and its operation codes from 0 to 4.
 pub(crate) fn check_blend(blend: &Blend) -> Result<(), String> {
     for (code, what, top) in [
         (blend.color_operation, "the color operation", 4),
@@ -238,7 +239,7 @@ pub struct Constant {
     pub value: f64,
 }
 
-/// One attribute of a vertex buffer: `buffer` is its index among the pipeline's buffers.
+/// Each vertex attribute reads from the pipeline's vertex buffer at index `buffer`.
 #[hxn::data]
 #[derive(Clone)]
 pub struct VertexAttribute {
@@ -248,8 +249,8 @@ pub struct VertexAttribute {
     pub buffer: i32,
 }
 
-/// One vertex buffer of a render pipeline: `stride` bytes per vertex, or per instance when
-/// `per_instance`.
+/// Each vertex buffer of a render pipeline has `stride` bytes for each vertex, or for each
+/// instance when `per_instance` is true.
 #[hxn::data]
 #[derive(Clone)]
 pub struct VertexBuffer {

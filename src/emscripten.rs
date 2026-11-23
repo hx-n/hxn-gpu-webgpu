@@ -655,7 +655,7 @@ impl Device {
                 dstFactor: (blend.alpha_destination + 1) as WGPUBlendFactor,
             },
         };
-        // Each buffer's attributes, which its layout points into.
+        // Holds the attributes of each buffer. Each buffer's layout points into its list.
         let grouped = (0..buffers.len())
             .map(|index| {
                 attributes

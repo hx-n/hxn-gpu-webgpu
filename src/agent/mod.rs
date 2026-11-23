@@ -1365,7 +1365,7 @@ impl Surface {
     }
 }
 
-// The wire's factor of each shared code, which `check_blend` keeps from 0 to 10.
+// Maps each shared factor code to its wire value. `check_blend` keeps the codes from 0 to 10.
 fn blend_factor(code: i32) -> wire::GPUBlendFactor {
     use wire::GPUBlendFactor as F;
     [
@@ -1383,7 +1383,7 @@ fn blend_factor(code: i32) -> wire::GPUBlendFactor {
     ][code as usize]
 }
 
-// The wire's operation of each shared code, which `check_blend` keeps from 0 to 4.
+// Maps each shared operation code to its wire value. `check_blend` keeps the codes from 0 to 4.
 fn blend_operation(code: i32) -> wire::GPUBlendOperation {
     use wire::GPUBlendOperation as O;
     [O::Add, O::Subtract, O::ReverseSubtract, O::Min, O::Max][code as usize]

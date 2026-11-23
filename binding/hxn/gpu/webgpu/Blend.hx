@@ -2,10 +2,11 @@
 package hxn.gpu.webgpu;
 
 /**
-	How a pipeline blends what it draws into its color target, as `GPUBlendState`. The factors
-	are hxn-gpu's shared codes, in the order of `GPUBlendFactor` from 0 `"zero"` to 10
-	`"src-alpha-saturated"`, and the operations in the order of `GPUBlendOperation` from 0
-	`"add"` to 4 `"max"`. With `enabled` false, the pipeline has no blend state.
+	`Blend` sets how a pipeline blends what it draws into its color target, as `GPUBlendState`
+	does. The factors are hxn-gpu's shared codes, in the order of `GPUBlendFactor`, from 0
+	`"zero"` to 10 `"src-alpha-saturated"`. The operations are in the order of
+	`GPUBlendOperation`, from 0 `"add"` to 4 `"max"`. When `enabled` is false, the pipeline has
+	no blend state.
 **/
 @:structInit class Blend {
 	public var enabled:Bool;

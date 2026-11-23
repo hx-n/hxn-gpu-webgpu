@@ -67,7 +67,7 @@
   "records": [
     {
       "name": "Blend",
-      "docs": "How a pipeline blends what it draws into its color target, as `GPUBlendState`. The factors\nare hxn-gpu's shared codes, in the order of `GPUBlendFactor` from 0 `\"zero\"` to 10\n`\"src-alpha-saturated\"`, and the operations in the order of `GPUBlendOperation` from 0\n`\"add\"` to 4 `\"max\"`. With `enabled` false, the pipeline has no blend state.",
+      "docs": "`Blend` sets how a pipeline blends what it draws into its color target, as `GPUBlendState`\ndoes. The factors are hxn-gpu's shared codes, in the order of `GPUBlendFactor`, from 0\n`\"zero\"` to 10 `\"src-alpha-saturated\"`. The operations are in the order of\n`GPUBlendOperation`, from 0 `\"add\"` to 4 `\"max\"`. When `enabled` is false, the pipeline has\nno blend state.",
       "fields": [
         { "name": "enabled", "type": "bool" },
         { "name": "color_operation", "type": "i32" },
@@ -109,7 +109,7 @@
     },
     {
       "name": "VertexAttribute",
-      "docs": "One attribute of a vertex buffer: `buffer` is its index among the pipeline's buffers.",
+      "docs": "Each vertex attribute reads from the pipeline's vertex buffer at index `buffer`.",
       "fields": [
         { "name": "location", "type": "i32" },
         { "name": "format", "type": "VertexFormat" },
@@ -119,7 +119,7 @@
     },
     {
       "name": "VertexBuffer",
-      "docs": "One vertex buffer of a render pipeline: `stride` bytes per vertex, or per instance when\n`per_instance`.",
+      "docs": "Each vertex buffer of a render pipeline has `stride` bytes for each vertex, or for each\ninstance when `per_instance` is true.",
       "fields": [
         { "name": "stride", "type": "i32" },
         { "name": "per_instance", "type": "bool" }
